@@ -1,0 +1,187 @@
+package edu.virginia.lab1test;
+
+import java.awt.Graphics;
+import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+
+import edu.virginia.engine.display.Game;
+import edu.virginia.engine.display.Sprite;
+import edu.virginia.engine.display.PhysicsSprite;
+import edu.virginia.engine.events.Event;
+import edu.virginia.engine.util.Tween;
+import edu.virginia.engine.util.TweenTransition;
+import edu.virginia.engine.util.TweenTransitionType;
+import edu.virginia.engine.util.TweenableParam;
+import edu.virginia.engine.util.Vector;
+
+/**
+ * Example game that utilizes our engine. We can create a simple prototype game with just a couple lines of code
+ * although, for now, it won't be a very fun game :)
+ * */
+public class LabOneGame extends Game {
+
+	static PhysicsSprite mario = new PhysicsSprite("Mario", "Mario.png");
+	static PhysicsSprite platform1 = new PhysicsSprite("Platform1", "Platform.png");
+	static PhysicsSprite platform2 = new PhysicsSprite("Platform2", "Platform.png");
+	static PhysicsSprite platform3 = new PhysicsSprite("Platform3", "Platform.png");
+	static PhysicsSprite platform4 = new PhysicsSprite("Platform4", "Platform.png");
+	static Sprite coin = new Sprite("Coin", "Coin.png");
+	
+	static boolean firstPass = true;
+	static boolean coinCollision = false;
+		
+	/**
+	 * Constructor. See constructor in Game.java for details on the parameters given
+	 * */
+	public LabOneGame() {
+		super("Lab One Test Game", 800, 600);
+	}
+	
+	/**
+	 * Engine will automatically call this update method once per frame and pass to us
+	 * the set of keys (as strings) that are currently being pressed down
+	 * */
+	@Override
+	public void update(ArrayList<String> pressedKeys){
+		
+		if (!firstPass) {
+			
+		/** 
+		 * Might have issues running during the first frame of the game since sprites
+		 * might not have been set to their correct positions. This will result in
+		 * collisions even though sprites may not physically touch each other.
+		 */
+		
+		super.update(pressedKeys);
+		if (mario != null && coin != null) {
+			if (!coinCollision && mario.collidesWith(coin)) {		
+				coinCollision = true;				
+				soundMgr.playSoundEffect("Coin");
+				/*
+				Event coinPickedUp = new PickedUpEvent(PickedUpEvent.COIN_PICKED_UP, coin);
+				coin.dispatchEvent(coinPickedUp);
+				*/
+				Tween tween = new Tween(coin, new TweenTransition(TweenTransitionType.QUADRATIC));
+				tween.animate(TweenableParam.SCALE_X, 1, 2, 500, 0);
+				tween.animate(TweenableParam.SCALE_Y, 1, 2, 500, 0);
+				tween.animate(TweenableParam.X, coin.getXPosition(), 400, 500);
+				tween.animate(TweenableParam.Y, coin.getYPosition(), 300, 500);
+				tween.animate(TweenableParam.ALPHA, coin.getAlpha(), 0, 750, 1000);
+				/*
+				tween.animate(TweenableParam.SCALE_X, 2, 1, 500, 500);
+				tween.animate(TweenableParam.SCALE_Y, 2, 1, 500, 500);
+				*/
+				tweenJuggler.add(tween);
+			}
+			if (pressedKeys.contains(KeyEvent.getKeyText(KeyEvent.VK_LEFT))) {
+				mario.setScaleX(-1);
+				mario.animate("walk", false, 200);
+				//mario.setXPosition(mario.getXPosition() - 3);
+				mario.move(new Vector(-3,0), this);
+			}
+			if (pressedKeys.contains(KeyEvent.getKeyText(KeyEvent.VK_UP))) {
+					soundMgr.playSoundEffect("Jump");
+					mario.setYVelocity(-500);
+			}
+			if (pressedKeys.contains(KeyEvent.getKeyText(KeyEvent.VK_RIGHT))) {
+				mario.setScaleX(1);
+				mario.animate("walk", false, 200);
+				//mario.setXPosition(mario.getXPosition() + 3);
+				mario.move(new Vector(3,0), this);
+			}			
+		}
+		
+		} else {
+			
+		firstPass = false;
+			
+		}
+		
+	}
+	
+	/**
+	 * Engine automatically invokes draw() every frame as well. If we want to make sure mario gets drawn to
+	 * the screen, we need to make sure to override this method and call mario's draw method.
+	 * */
+	@Override
+	public void draw(Graphics g){
+		super.draw(g);
+	}
+
+	/**
+	 * Quick main class that simply creates an instance of our game and starts the timer
+	 * that calls update() and draw() every frame
+	 * */
+	public static void main(String[] args) {
+		
+		LabOneGame game = new LabOneGame();
+		
+		/* Set up utility managers */
+		
+		// Sound manager
+		soundMgr.loadSoundEffect("Jump", "smb_jump-small.wav");
+		soundMgr.loadSoundEffect("Coin", "Mario-coin-sound.wav");
+		soundMgr.loadMusic("Background Music", "01-super-mario-bros.wav");
+		soundMgr.playMusic("Background Music");
+		
+		// Quest manager
+		QuestManager questManager = new QuestManager(game);
+
+		/* Set up Sprite animations and information */
+		
+		// Mario
+		String[] mario_walk = {"Mario_walk_1.png", "Mario_walk_2.png"};
+		mario.addAnimation("walk", mario_walk);
+		mario.setXPosition(64);
+		mario.setXPivotPoint(mario.getUnscaledWidth()/2);
+		mario.setRestitution(0.5);
+		
+		// Platform
+		platform1.setXPosition(0);
+		platform1.setYPosition(442);
+		platform1.setMass(PhysicsSprite.INFINITE_MASS);
+		platform2.setXPosition(128);
+		platform2.setYPosition(442);
+		platform2.setMass(PhysicsSprite.INFINITE_MASS);
+		platform3.setXPosition(128+128);
+		platform3.setYPosition(442-128);
+		platform3.setMass(PhysicsSprite.INFINITE_MASS);
+		platform4.setXPosition(128+128+128+128+64);
+		platform4.setYPosition(442);
+		platform4.setMass(PhysicsSprite.INFINITE_MASS);
+		
+		// Coin
+		coin.setXPosition(550);
+		coin.setYPosition(75);
+		coin.setXPivotPoint(coin.getUnscaledWidth()/2);
+		coin.setYPivotPoint(coin.getUnscaledHeight()/2);
+		coin.setVisible(true);
+
+		/* Set up the display tree */
+		game.addChild(mario);
+		game.addChild(platform1);
+		game.addChild(platform2);
+		game.addChild(platform3);
+		game.addChild(platform4);
+		game.addChild(coin);
+		
+		/* Set up the quad tree for collision detection*/
+		game.addPhysicsSprite(mario);
+		game.addPhysicsSprite(platform1);
+		game.addPhysicsSprite(platform2);
+		game.addPhysicsSprite(platform3);
+		game.addPhysicsSprite(platform4);
+
+		/* Register event listeners */
+		
+		/* Start the game */			
+		game.start();
+		
+		// Make mario tween into existence
+		Tween tween = new Tween(mario, new TweenTransition(TweenTransitionType.LINEAR));
+		tween.animate(TweenableParam.SCALE_X, 0, 1, 500);
+		tween.animate(TweenableParam.SCALE_Y, 0, 1, 500);
+		tweenJuggler.add(tween);
+	}
+
+}
