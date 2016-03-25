@@ -7,7 +7,7 @@ import edu.virginia.engine.util.Vector;
 
 public class PhysicsSprite extends AnimatedSprite {
 
-	private final static Vector GRAVITY = new Vector(0,750); // applied as acceleration
+	private final static Vector GRAVITY = new Vector(0,-10); // applied as acceleration
 	
 	private long lastKinematicsUpdate;
 	private Vector velocity;

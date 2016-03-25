@@ -22,6 +22,7 @@ import edu.virginia.engine.util.Vector;
 public class LabOneGame extends Game {
 
 	static Sprite scooter = new Sprite("Scooter", "Scooter.png");
+	static PhysicsSprite velocity = new PhysicsSprite("Velocity", "Invisible.png");
 	static Sprite pothole1 = new Sprite("PotHole1", "Manhole.png");
 	static Sprite pothole2 = new Sprite("PotHole2", "Manhole.png");
 	static Sprite pothole3 = new Sprite("PotHole3", "Manhole.png");
@@ -29,7 +30,6 @@ public class LabOneGame extends Game {
 	static Sprite pothole5 = new Sprite("PotHole5", "Manhole.png");
 	static Sprite pothole6 = new Sprite("PotHole6", "Manhole.png");
 	static Sprite pothole7 = new Sprite("PotHole7", "Manhole.png");
-	static PhysicsSprite velocity = new PhysicsSprite("velocity", "Invisible.png");
 	
 	static boolean firstPass = true;
 		
@@ -218,15 +218,8 @@ public class LabOneGame extends Game {
 		velocity.addChild(pothole5);
 		velocity.addChild(pothole6);
 		velocity.addChild(pothole7);
-		/*
-		game.addChild(mario);
-		game.addChild(platform1);
-		game.addChild(platform2);
-		game.addChild(platform3);
-		game.addChild(platform4);
-		game.addChild(coin);
-		*/
-		velocity.setYVelocity((0.1));
+		
+		velocity.setYVelocity(-125);
 		/* Set up the quad tree for collision detection*/
 		/*
 		game.addPhysicsSprite(mario);
