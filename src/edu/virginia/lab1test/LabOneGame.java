@@ -21,6 +21,14 @@ import edu.virginia.engine.util.Vector;
 public class LabOneGame extends Game {
 
 	static Sprite scooter = new Sprite("Scooter", "Scooter.png");
+	static Sprite pothole1 = new Sprite("PotHole1", "Manhole.png");
+	static Sprite pothole2 = new Sprite("PotHole2", "Manhole.png");
+	static Sprite pothole3 = new Sprite("PotHole3", "Manhole.png");
+	static Sprite pothole4 = new Sprite("PotHole4", "Manhole.png");
+	static Sprite pothole5 = new Sprite("PotHole5", "Manhole.png");
+	static Sprite pothole6 = new Sprite("PotHole6", "Manhole.png");
+	static Sprite pothole7 = new Sprite("PotHole7", "Manhole.png");
+	static PhysicsSprite velocity = new PhysicsSprite("velocity", "Invisible.png");
 	
 	static boolean firstPass = true;
 		
@@ -155,7 +163,31 @@ public class LabOneGame extends Game {
 		scooter.setYPivotPoint(scooter.getUnscaledHeight()/2);
 		scooter.setXPosition(game.width/2);
 		scooter.setYPosition(scooter.getUnscaledHeight()/2);
+		
+		velocity.setXPosition(0);
+		velocity.setYPosition(0);
+		//velocity.setVisible(false);
+		
+		pothole1.setXPosition(20);
+		pothole1.setYPosition(500);
 				
+		pothole2.setXPosition(85);
+		pothole2.setYPosition(500);
+		
+		pothole3.setXPosition(150);
+		pothole3.setYPosition(500);
+		
+		pothole4.setXPosition(215);
+		pothole4.setYPosition(500);
+		
+		pothole5.setXPosition(280);
+		pothole5.setYPosition(500);
+		
+		pothole6.setXPosition(345);
+		pothole6.setYPosition(500);
+		
+		pothole7.setXPosition(410);
+		pothole7.setYPosition(500);
 		// Mario
 		/*
 		String[] mario_walk = {"Mario_walk_1.png", "Mario_walk_2.png"};
@@ -164,6 +196,15 @@ public class LabOneGame extends Game {
 		
 		/* Set up the display tree */
 		game.addChild(scooter);
+		
+		game.addChild(velocity);
+		velocity.addChild(pothole1);
+		velocity.addChild(pothole2);
+		velocity.addChild(pothole3);
+		velocity.addChild(pothole4);
+		velocity.addChild(pothole5);
+		velocity.addChild(pothole6);
+		velocity.addChild(pothole7);
 		/*
 		game.addChild(mario);
 		game.addChild(platform1);
@@ -172,7 +213,7 @@ public class LabOneGame extends Game {
 		game.addChild(platform4);
 		game.addChild(coin);
 		*/
-		
+		velocity.setYVelocity((0.1));
 		/* Set up the quad tree for collision detection*/
 		/*
 		game.addPhysicsSprite(mario);
