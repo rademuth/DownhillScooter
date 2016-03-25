@@ -3,6 +3,7 @@ package edu.virginia.lab1test;
 import java.awt.Graphics;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
+import java.util.List;
 
 import edu.virginia.engine.display.Game;
 import edu.virginia.engine.display.Sprite;
@@ -37,7 +38,6 @@ public class LabOneGame extends Game {
 	 * */
 	@Override
 	public void update(ArrayList<String> pressedKeys){
-
 		super.update(pressedKeys);
 		
 		if (!firstPass) {
@@ -47,6 +47,18 @@ public class LabOneGame extends Game {
 			 * might not have been set to their correct positions. This will result in
 			 * collisions even though sprites may not physically touch each other.
 			 */
+			
+			// Check for collisions
+			List<Sprite> returnObjects = new ArrayList<Sprite>();
+			returnObjects.clear();
+			this.getQuadtree().retrieve(returnObjects, scooter);
+			for (Sprite obstacle : returnObjects) {
+				// Run collision detection algorithm between objects
+				if (scooter.collidesWith(obstacle)) {
+					// TODO : Handle collision between the scooter and the given obstacle
+					
+				}
+			}
 			
 			if (scooter != null) {
 				// Move the character to the left
@@ -62,12 +74,13 @@ public class LabOneGame extends Game {
 					//mario.animate("walk", false, 200);
 					scooter.setXPosition(scooter.getXPosition() + 3);
 					//mario.move(new Vector(3,0), this);
-					if (scooter.getXPosition() > this.width)
-						scooter.setXPosition(this.width);
+					if (scooter.getXPosition() > this.getWidth())
+						scooter.setXPosition(this.getWidth());
 				}	
 				// Make the character jump
 				/*
 				 * THIS SHOULD ONLY HAPPEN WHEN THE KEY IS INITIALLY PRESSED
+				 * Or check if the character can jump given its current state
 				 */
 				if (pressedKeys.contains(KeyEvent.getKeyText(KeyEvent.VK_UP))) {
 					//soundMgr.playSoundEffect("Jump");
@@ -153,7 +166,7 @@ public class LabOneGame extends Game {
 		// Scooter
 		scooter.setXPivotPoint(scooter.getUnscaledWidth()/2);
 		scooter.setYPivotPoint(scooter.getUnscaledHeight()/2);
-		scooter.setXPosition(game.width/2);
+		scooter.setXPosition(game.getWidth()/2);
 		scooter.setYPosition(scooter.getUnscaledHeight()/2);
 				
 		// Mario

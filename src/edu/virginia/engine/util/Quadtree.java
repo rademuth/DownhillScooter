@@ -4,7 +4,7 @@ import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
 
-import edu.virginia.engine.display.PhysicsSprite;
+import edu.virginia.engine.display.Sprite;
 
 public class Quadtree {
 
@@ -13,13 +13,13 @@ public class Quadtree {
 	private int MAX_LEVELS = 5; // The deepest level subnode
 
 	private int level; // The current node level
-	private List<PhysicsSprite> objects;
+	private List<Sprite> objects;
 	private Rectangle bounds; // The 2D space that the node occupies
 	private Quadtree[] nodes; // The four subnodes
 
 	public Quadtree(int level, Rectangle bounds) {
 		this.level = level;
-		this.objects = new ArrayList<PhysicsSprite>();
+		this.objects = new ArrayList<Sprite>();
 		this.bounds = bounds;
 		this.nodes = new Quadtree[4];
 	}
@@ -50,7 +50,7 @@ public class Quadtree {
 				+ subHeight, subWidth, subHeight));
 	}
 
-	private int getIndex(PhysicsSprite d) {
+	private int getIndex(Sprite d) {
 		int index = -1;
 		double verticalMidpoint = bounds.getX() + (bounds.getWidth() / 2);
 		double horizontalMidpoint = bounds.getY() + (bounds.getHeight() / 2);
@@ -85,7 +85,7 @@ public class Quadtree {
 		return index;
 	}
 
-	public void insert(PhysicsSprite d) {
+	public void insert(Sprite d) {
 		if (nodes[0] != null) {
 			int index = getIndex(d);
 			if (index != -1) {
@@ -112,7 +112,7 @@ public class Quadtree {
 		}
 	}
 
-	public List<PhysicsSprite> retrieve(List<PhysicsSprite> returnObjects, PhysicsSprite d) {
+	public List<Sprite> retrieve(List<Sprite> returnObjects, Sprite d) {
 		int index = getIndex(d);
 		if (index != -1 && nodes[0] != null) {
 			nodes[index].retrieve(returnObjects, d);

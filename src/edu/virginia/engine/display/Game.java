@@ -26,8 +26,8 @@ import edu.virginia.engine.util.TweenJuggler;
  * */
 public class Game extends DisplayObjectContainer implements ActionListener, KeyListener {
 
-	public int width;
-	public int height;
+	private int width;
+	private int height;
 	
 	/* Frames per second this game runs at */
 	private int FRAMES_PER_SEC = 60;
@@ -42,8 +42,8 @@ public class Game extends DisplayObjectContainer implements ActionListener, KeyL
 	private GameScenePanel scenePanel;
 	
 	/* The DisplayObjects and Quadtree for this game */
-	private List<PhysicsSprite> physicsSprites;
-	private Quadtree quad;
+	private List<Sprite> obstacles;
+	private Quadtree quadtree;
 	
 	/* The SoundManager for this game */
 	public static SoundManager soundMgr = SoundManager.getInstance();
@@ -64,8 +64,24 @@ public class Game extends DisplayObjectContainer implements ActionListener, KeyL
 		/* Use an absolute layout */
 		scenePanel.setLayout(null);
 	
-		physicsSprites = new ArrayList<PhysicsSprite>();
-		quad = new Quadtree(0, new Rectangle(0,0,width,height));
+		obstacles = new ArrayList<Sprite>();
+		quadtree = new Quadtree(0, new Rectangle(0,0,width,height));
+	}
+	
+	public int getWidth() {
+		return this.width;
+	}
+	
+	public int getHeight() {
+		return this.height;
+	}
+	
+	public List<Sprite> getObstacles() {
+		return this.obstacles;
+	}
+	
+	public Quadtree getQuadtree() {
+		return this.quadtree;
 	}
 	
 	public void setFramesPerSecond(int fps){
@@ -171,27 +187,13 @@ public class Game extends DisplayObjectContainer implements ActionListener, KeyL
 		super.update(pressedKeys);
 		
 		// Reset the game's Quadtree
-		quad.clear();
-		for (PhysicsSprite d : physicsSprites) {
-			quad.insert(d);
+		quadtree.clear();
+		for (Sprite obstacle : obstacles) {
+			quadtree.insert(obstacle);
 		}
 		
 		// Update the game's TweenJuggler
 		tweenJuggler.nextFrame();
-
-		// Check for collisions
-		List<PhysicsSprite> returnObjects = new ArrayList<PhysicsSprite>();
-		for (PhysicsSprite d : physicsSprites) {
-			returnObjects.clear();
-			quad.retrieve(returnObjects, d);
-
-			for (PhysicsSprite collider : returnObjects) {
-				// Run collision detection algorithm between objects
-				if (d != collider && d.collidesWith(collider)) {
-					d.handleCollision(collider);
-				}
-			}
-		}
 	}
 	
 	@Override
@@ -235,12 +237,8 @@ public class Game extends DisplayObjectContainer implements ActionListener, KeyL
 		
 	}
 	
-	public void addPhysicsSprite(PhysicsSprite d) {
-		physicsSprites.add(d);
-	}
-	
-	public Quadtree getQuadtree() {
-		return quad;
+	public void addSprite(Sprite d) {
+		obstacles.add(d);
 	}
 	
 }
