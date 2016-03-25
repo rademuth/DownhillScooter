@@ -93,4 +93,10 @@ public class Vector {
 	public double dot(Vector v) {
 		return this.x*v.x + this.y*v.y;
 	}
+
+	@Override
+	public String toString() {
+		return "<" + this.x + "," + this.y + ">";
+	}
+	
 }

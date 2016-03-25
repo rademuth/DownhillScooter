@@ -26,6 +26,9 @@ import edu.virginia.engine.util.TweenJuggler;
  * */
 public class Game extends DisplayObjectContainer implements ActionListener, KeyListener {
 
+	public int width;
+	public int height;
+	
 	/* Frames per second this game runs at */
 	private int FRAMES_PER_SEC = 60;
 
@@ -50,6 +53,9 @@ public class Game extends DisplayObjectContainer implements ActionListener, KeyL
 
 	public Game(String gameId, int width, int height) {
 		super(gameId);
+		
+		this.width = width;
+		this.height = height;
 		
 		setUpMainFrame(gameId, width, height);
 		

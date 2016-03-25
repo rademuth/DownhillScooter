@@ -275,7 +275,7 @@ public class DisplayObject extends EventDispatcher {
 			 */
 			reverseTransformations(g2d);
 			
-			//g2d.draw(this.getHitbox());
+			g2d.draw(this.getHitbox());
 		}
 	}
 
@@ -329,6 +329,9 @@ public class DisplayObject extends EventDispatcher {
 	}
 	
 	public Rectangle getHitbox() {
+		Vector global = this.getLocalToGlobalCoors(-this.getXPivotPoint(), -this.getYPivotPoint());
+		return new Rectangle((int)global.getX(), (int)global.getY(), this.getUnscaledWidth(), this.getUnscaledHeight());
+		/*
 		Vector global;
 		if (scaleX >= 0) {
 			if (scaleY >= 0 ) {
@@ -343,7 +346,8 @@ public class DisplayObject extends EventDispatcher {
 				global = this.getLocalToGlobalCoors((this.getUnscaledWidth()-this.getXPivotPoint())*scaleX, (this.getUnscaledHeight()-this.getYPivotPoint())*scaleY);
 			}
 		}
-		return new Rectangle((int)global.getX(), (int)global.getY(), (int)Math.abs((this.getUnscaledHeight()*scaleY)), (int)Math.abs((this.getUnscaledWidth()*scaleX)));
+		return new Rectangle((int)global.getX(), (int)global.getY(), (int)Math.abs((this.getUnscaledWidth()*scaleX)), (int)Math.abs((this.getUnscaledHeight()*scaleY)));
+		*/
 	}
 
 	public boolean collidesWith(DisplayObject d) {
