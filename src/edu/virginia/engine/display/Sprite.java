@@ -8,12 +8,26 @@ import java.util.ArrayList;
  * */
 public class Sprite extends DisplayObjectContainer {
 	
+	public ObstacleType type;
+	
 	public Sprite(String id) {
 		super(id);
+		this.type = null;
 	}
 
 	public Sprite(String id, String imageFileName) {
 		super(id, imageFileName);
+		this.type = null;
+	}
+	
+	public Sprite(String id, ObstacleType type) {
+		super(id);
+		this.type = type;
+	}
+
+	public Sprite(String id, String imageFileName, ObstacleType type) {
+		super(id, imageFileName);
+		this.type = type;
 	}
 	
 	@Override

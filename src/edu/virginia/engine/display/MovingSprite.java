@@ -14,12 +14,9 @@ public class MovingSprite extends AnimatedSprite {
 	private boolean movingRight;
 	private int min;
 	private int max;
-	
-	//public void addAnimation(String name, String[] imageFileNames) {
-	//public void animate(String name, boolean loop, long duration) {
-	
-	public MovingSprite(String id, String[] imageFileNames, int min, int max) {
-		super(id);
+		
+	public MovingSprite(String id, String[] imageFileNames, ObstacleType type, int min, int max) {
+		super(id, type);
 		this.rand = new Random();
 		this.movingRight = true;
 		this.min = min;
@@ -28,8 +25,8 @@ public class MovingSprite extends AnimatedSprite {
 		this.animate("Move", true, 500);
 	}
 	
-	public MovingSprite(String id, String imageFileName, String[] imageFileNames, int min, int max) {
-		super(id, imageFileName);
+	public MovingSprite(String id, String imageFileName, String[] imageFileNames, ObstacleType type, int min, int max) {
+		super(id, imageFileName, type);
 		this.rand = new Random();
 		this.movingRight = true;
 		this.min = min;

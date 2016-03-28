@@ -44,6 +44,30 @@ public class AnimatedSprite extends Sprite {
 		addImage(imageFileName);
 	}
 	
+	public AnimatedSprite(String id, ObstacleType type) {
+		super(id, type);
+		this.displayImages = new ArrayList<BufferedImage>();
+		this.animations = new HashMap<String,Pair<Integer,Integer>>();
+		this.currFrame = 0;
+		this.duration = 1000;
+		this.lastImageUpdate = System.nanoTime();
+		this.stopped = true;
+		this.looping = false;
+	}
+	
+	// Constructor for an animated sprite with a default image
+	public AnimatedSprite(String id, String imageFileName, ObstacleType type) {
+		super(id, imageFileName, type);
+		this.displayImages = new ArrayList<BufferedImage>();
+		this.animations = new HashMap<String,Pair<Integer,Integer>>();
+		this.currFrame = 0;
+		this.duration = 1000;
+		this.lastImageUpdate = System.nanoTime();
+		this.stopped = true;
+		this.looping = false;
+		addImage(imageFileName);
+	}
+	
 	public void addImage(String imageFileName) {		
 		if (imageFileName == null) {
 			return;

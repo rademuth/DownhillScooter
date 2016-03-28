@@ -5,6 +5,7 @@ import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.virginia.engine.display.DisplayObjectContainer;
 import edu.virginia.engine.display.Game;
 import edu.virginia.engine.display.MovingSprite;
 import edu.virginia.engine.display.ObstacleType;
@@ -31,7 +32,11 @@ public class LabOneGame extends Game {
 
 	private long lastJump;
 	private Sprite scooter;
-	private PhysicsSprite obstacleParent;
+	private PhysicsSprite obstacleContainer;
+	private DisplayObjectContainer lineContainer;
+	private DisplayObjectContainer potholeContainer;
+	private DisplayObjectContainer trafficConeContainer;
+	private DisplayObjectContainer dogContainer;
 
 	static boolean firstPass = true;
 	
@@ -46,9 +51,17 @@ public class LabOneGame extends Game {
 		this.scooter.setYPivotPoint(this.scooter.getUnscaledHeight()/2);
 		this.scooter.setXPosition(GAME_WIDTH/2);
 		this.scooter.setYPosition(this.scooter.getUnscaledHeight()/2);
-		this.obstacleParent = new PhysicsSprite("ObstacleParent");
-		this.obstacleParent.setYVelocity(INITIAL_VELOCITY);
-		this.addChild(this.obstacleParent);
+		this.obstacleContainer = new PhysicsSprite("ObstacleParent");
+		this.obstacleContainer.setYVelocity(INITIAL_VELOCITY);
+		this.lineContainer = new DisplayObjectContainer("Line Container");
+		this.potholeContainer = new DisplayObjectContainer("Pothole Container");
+		this.trafficConeContainer = new DisplayObjectContainer("Traffic Cone Container");
+		this.dogContainer = new DisplayObjectContainer("Dog Container");
+		this.obstacleContainer.addChild(this.lineContainer);
+		this.obstacleContainer.addChild(this.potholeContainer);
+		this.obstacleContainer.addChild(this.trafficConeContainer);
+		this.obstacleContainer.addChild(this.dogContainer);
+		this.addChild(this.obstacleContainer);
 		this.addChild(this.scooter);
 	}
 	
@@ -60,33 +73,38 @@ public class LabOneGame extends Game {
 		return !this.canJump();
 	}
 	
-	public void addObstacle(ObstacleType obstacle, double xPos, double yPos) {
+	public void addObstacle(ObstacleType type, double xPos, double yPos) {
 		Sprite s;
-		switch(obstacle) {
+		switch(type) {
 			case POTHOLE:
-				s = new Sprite("Pothole", "Pothole.png");
+				s = new Sprite("Pothole", "Pothole.png", type);
 				s.setPivotPoint(s.getUnscaledWidth()/2, s.getUnscaledHeight()/2);
 				s.setPosition(xPos, yPos);
-				this.obstacleParent.addChild(s);
+				this.potholeContainer.addChild(s);
 				this.addSprite(s);
-				return;
+				break;
 			case TRAFFIC_CONE:
-				s = new Sprite("Traffic Cone", "Cone.png");
+				s = new Sprite("Traffic Cone", "Cone.png", type);
 				s.setPivotPoint(s.getUnscaledWidth()/2, s.getUnscaledHeight()/2);
 				s.setPosition(xPos, yPos);
-				this.obstacleParent.addChild(s);
+				this.trafficConeContainer.addChild(s);
 				this.addSprite(s);
-				return;
+				break;
 			case DOG:
-				s = new MovingSprite("Dog", dogImages, 0, GAME_WIDTH);
+				s = new MovingSprite("Dog", dogImages, type, 0, GAME_WIDTH);
 				s.setPivotPoint(s.getUnscaledWidth()/2, s.getUnscaledHeight()/2);
 				s.setPosition(xPos, yPos);
-				this.obstacleParent.addChild(s);
+				this.dogContainer.addChild(s);
 				this.addSprite(s);
-				return;
-			default:
-				return;
+				break;
 		}
+	}
+	
+	public void addLine(double xPos, double yPos) {
+		Sprite s = new Sprite("Line", "Line.png");
+		s.setPivotPoint(s.getUnscaledWidth()/2, s.getUnscaledHeight()/2);
+		s.setPosition(xPos, yPos);
+		this.lineContainer.addChild(s);
 	}
 	
 	/**
@@ -113,7 +131,21 @@ public class LabOneGame extends Game {
 				// Run collision detection algorithm between objects
 				if (scooter.collidesWith(obstacle)) {
 					// TODO : Handle collision between the scooter and the given obstacle
-					System.out.println("Collision");
+					if (obstacle.type != null) {
+						switch (obstacle.type) {
+							case POTHOLE:
+								if (!this.isInAir()) {
+									System.out.println("Collision");
+								}
+								break;
+							case TRAFFIC_CONE:
+								System.out.println("Collision");
+								break;
+							case DOG:
+								System.out.println("Collision");
+								break;
+						}
+					}
 				}
 			}
 			
@@ -194,6 +226,10 @@ public class LabOneGame extends Game {
 		}
 		game.addObstacle(ObstacleType.DOG, GAME_WIDTH/2, 1250);
 				
+		for (int i = 0; i< 1000; i++) {
+			game.addLine(GAME_WIDTH/2, 256*i);
+		}
+		
 		/* Start the game */
 		game.start();
 		
