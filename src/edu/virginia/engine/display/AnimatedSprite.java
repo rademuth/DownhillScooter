@@ -19,6 +19,18 @@ public class AnimatedSprite extends Sprite {
 	private boolean looping;
 	private String animation;
 
+	// Constructor for an animated sprite with no default image
+	public AnimatedSprite(String id) {
+		super(id);
+		this.displayImages = new ArrayList<BufferedImage>();
+		this.animations = new HashMap<String,Pair<Integer,Integer>>();
+		this.currFrame = 0;
+		this.duration = 1000;
+		this.lastImageUpdate = System.nanoTime();
+		this.stopped = true;
+		this.looping = false;
+	}
+	
 	// Constructor for an animated sprite with a default image
 	public AnimatedSprite(String id, String imageFileName) {
 		super(id, imageFileName);

@@ -194,6 +194,7 @@ public class Game extends DisplayObjectContainer implements ActionListener, KeyL
 		
 		// Update the game's TweenJuggler
 		tweenJuggler.nextFrame();
+	
 	}
 	
 	@Override
@@ -221,6 +222,7 @@ public class Game extends DisplayObjectContainer implements ActionListener, KeyL
 	}
 
 	ArrayList<String> pressedKeys = new ArrayList<String>();
+
 	
 	public void keyPressed(KeyEvent e) {
 		if(!pressedKeys.contains(KeyEvent.getKeyText(e.getKeyCode())))

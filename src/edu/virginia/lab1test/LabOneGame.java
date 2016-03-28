@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.virginia.engine.display.Game;
+import edu.virginia.engine.display.MovingSprite;
 import edu.virginia.engine.display.Sprite;
 import edu.virginia.engine.display.PhysicsSprite;
 import edu.virginia.engine.events.Event;
@@ -22,7 +23,7 @@ import edu.virginia.engine.util.Vector;
 public class LabOneGame extends Game {
 
 	static Sprite scooter = new Sprite("Scooter", "Scooter.png");
-	static PhysicsSprite velocity = new PhysicsSprite("Velocity", "Invisible.png");
+	static PhysicsSprite obstacleParent = new PhysicsSprite("ObstacleParent");
 	static Sprite pothole1 = new Sprite("PotHole1", "Manhole.png");
 	static Sprite pothole2 = new Sprite("PotHole2", "Manhole.png");
 	static Sprite pothole3 = new Sprite("PotHole3", "Manhole.png");
@@ -30,6 +31,9 @@ public class LabOneGame extends Game {
 	static Sprite pothole5 = new Sprite("PotHole5", "Manhole.png");
 	static Sprite pothole6 = new Sprite("PotHole6", "Manhole.png");
 	static Sprite pothole7 = new Sprite("PotHole7", "Manhole.png");
+	
+	static String[] dogImages = {"Dog_move_1.png", "Dog_move_2.png"};
+	static MovingSprite dog1 = new MovingSprite("Dog1", dogImages);
 	
 	static boolean firstPass = true;
 		
@@ -48,6 +52,9 @@ public class LabOneGame extends Game {
 	public void update(ArrayList<String> pressedKeys){
 		super.update(pressedKeys);
 		
+		/* Create lists of pressed and released keys */
+		
+		
 		if (!firstPass) {
 			
 			/** 
@@ -64,27 +71,29 @@ public class LabOneGame extends Game {
 				// Run collision detection algorithm between objects
 				if (scooter.collidesWith(obstacle)) {
 					// TODO : Handle collision between the scooter and the given obstacle
-					
+					System.out.println("Collision");
 				}
 			}
 			
 			if (scooter != null) {
-				// Move the character to the left
+				
 				if (pressedKeys.contains(KeyEvent.getKeyText(KeyEvent.VK_LEFT)) && !pressedKeys.contains(KeyEvent.getKeyText(KeyEvent.VK_RIGHT))) {
-					//mario.animate("walk", false, 200);
+					// Move the character to the left
+					// scooter.animate(...)
 					scooter.setXPosition(scooter.getXPosition() - 3);
-					//mario.move(new Vector(-3,0), this);
 					if (scooter.getXPosition() < 0)
 						scooter.setXPosition(0);
-				}
-				// Move the character to the right
-				if (pressedKeys.contains(KeyEvent.getKeyText(KeyEvent.VK_RIGHT)) && !pressedKeys.contains(KeyEvent.getKeyText(KeyEvent.VK_LEFT))) {
-					//mario.animate("walk", false, 200);
+				} else if (pressedKeys.contains(KeyEvent.getKeyText(KeyEvent.VK_RIGHT)) && !pressedKeys.contains(KeyEvent.getKeyText(KeyEvent.VK_LEFT))) {
+					// Move the character to the right
+					// scooter.animate(...)
 					scooter.setXPosition(scooter.getXPosition() + 3);
-					//mario.move(new Vector(3,0), this);
 					if (scooter.getXPosition() > this.getWidth())
 						scooter.setXPosition(this.getWidth());
-				}	
+				} else {
+					// No horizontal movement
+					
+				}
+				
 				// Make the character jump
 				/*
 				 * THIS SHOULD ONLY HAPPEN WHEN THE KEY IS INITIALLY PRESSED
@@ -99,40 +108,7 @@ public class LabOneGame extends Game {
 					tween.animate(TweenableParam.SCALE_Y, 1.25, 1, 500);
 					tweenJuggler.add(tween);
 				}
-			}
-			
-			/*
-			if (mario != null && coin != null) {
-				if (!coinCollision && mario.collidesWith(coin)) {		
-					coinCollision = true;				
-					soundMgr.playSoundEffect("Coin");
-					Tween tween = new Tween(coin, new TweenTransition(TweenTransitionType.QUADRATIC));
-					tween.animate(TweenableParam.SCALE_X, 1, 2, 500, 0);
-					tween.animate(TweenableParam.SCALE_Y, 1, 2, 500, 0);
-					tween.animate(TweenableParam.X, coin.getXPosition(), 400, 500);
-					tween.animate(TweenableParam.Y, coin.getYPosition(), 300, 500);
-					tween.animate(TweenableParam.ALPHA, coin.getAlpha(), 0, 750, 1000);
-					tweenJuggler.add(tween);
-				}
-				if (pressedKeys.contains(KeyEvent.getKeyText(KeyEvent.VK_LEFT))) {
-					mario.setScaleX(-1);
-					mario.animate("walk", false, 200);
-					//mario.setXPosition(mario.getXPosition() - 3);
-					mario.move(new Vector(-3,0), this);
-				}
-				if (pressedKeys.contains(KeyEvent.getKeyText(KeyEvent.VK_UP))) {
-						soundMgr.playSoundEffect("Jump");
-						mario.setYVelocity(-500);
-				}
-				if (pressedKeys.contains(KeyEvent.getKeyText(KeyEvent.VK_RIGHT))) {
-					mario.setScaleX(1);
-					mario.animate("walk", false, 200);
-					//mario.setXPosition(mario.getXPosition() + 3);
-					mario.move(new Vector(3,0), this);
-				}			
-			}
-			*/
-			
+			}			
 		} else {
 			firstPass = false;
 		}
@@ -177,70 +153,59 @@ public class LabOneGame extends Game {
 		scooter.setXPosition(game.getWidth()/2);
 		scooter.setYPosition(scooter.getUnscaledHeight()/2);
 		
-		velocity.setXPosition(0);
-		velocity.setYPosition(0);
-		//velocity.setVisible(false);
+		// ObstacleParent
+		obstacleParent.setYVelocity(-125);
 		
+		// Potholes
 		pothole1.setXPosition(20);
 		pothole1.setYPosition(500);
-				
 		pothole2.setXPosition(85);
 		pothole2.setYPosition(500);
-		
 		pothole3.setXPosition(150);
 		pothole3.setYPosition(500);
-		
 		pothole4.setXPosition(215);
 		pothole4.setYPosition(500);
-		
 		pothole5.setXPosition(280);
 		pothole5.setYPosition(500);
-		
 		pothole6.setXPosition(345);
 		pothole6.setYPosition(500);
-		
 		pothole7.setXPosition(410);
 		pothole7.setYPosition(500);
-		// Mario
-		/*
-		String[] mario_walk = {"Mario_walk_1.png", "Mario_walk_2.png"};
-		mario.addAnimation("walk", mario_walk);
-		*/
+		
+		dog1.setXPivotPoint(dog1.getUnscaledWidth()/2);
+		dog1.setXPosition(game.getWidth()/2);
+		dog1.setYPosition(1000);
 		
 		/* Set up the display tree */
+		
 		game.addChild(scooter);
+		game.addChild(obstacleParent);
 		
-		game.addChild(velocity);
-		velocity.addChild(pothole1);
-		velocity.addChild(pothole2);
-		velocity.addChild(pothole3);
-		velocity.addChild(pothole4);
-		velocity.addChild(pothole5);
-		velocity.addChild(pothole6);
-		velocity.addChild(pothole7);
+		obstacleParent.addChild(pothole1);
+		obstacleParent.addChild(pothole2);
+		obstacleParent.addChild(pothole3);
+		obstacleParent.addChild(pothole4);
+		obstacleParent.addChild(pothole5);
+		obstacleParent.addChild(pothole6);
+		obstacleParent.addChild(pothole7);
+		obstacleParent.addChild(dog1);
 		
-		velocity.setYVelocity(-125);
-		/* Set up the quad tree for collision detection*/
-		/*
-		game.addPhysicsSprite(mario);
-		game.addPhysicsSprite(platform1);
-		game.addPhysicsSprite(platform2);
-		game.addPhysicsSprite(platform3);
-		game.addPhysicsSprite(platform4);
-		*/
+		/* Set up the quad tree for collision detection */
+		
+		game.addSprite(pothole1);
+		game.addSprite(pothole2);
+		game.addSprite(pothole3);
+		game.addSprite(pothole4);
+		game.addSprite(pothole5);
+		game.addSprite(pothole6);
+		game.addSprite(pothole7);
+		game.addSprite(dog1);
 
 		/* Register event listeners */
 		
-		/* Start the game */			
+		/* Start the game */
+		
 		game.start();
 		
-		// Make mario tween into existence
-		/*
-		Tween tween = new Tween(mario, new TweenTransition(TweenTransitionType.LINEAR));
-		tween.animate(TweenableParam.SCALE_X, 0, 1, 500);
-		tween.animate(TweenableParam.SCALE_Y, 0, 1, 500);
-		tweenJuggler.add(tween);
-		*/
 	}
-
 }

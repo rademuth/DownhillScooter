@@ -7,13 +7,21 @@ import edu.virginia.engine.util.Vector;
 
 public class PhysicsSprite extends AnimatedSprite {
 
-	private final static Vector GRAVITY = new Vector(0,-10); // applied as acceleration
+	private final static Vector GRAVITY = new Vector(0,-25); // applied as acceleration
 	
 	private long lastKinematicsUpdate;
 	private Vector velocity;
 	private Vector acceleration;
 	
 	private Vector oldPosition;
+	
+	public PhysicsSprite(String id) {
+		super(id);
+		this.lastKinematicsUpdate = System.nanoTime();
+		this.velocity = new Vector(0,0);
+		this.acceleration = new Vector(0,0);
+		this.oldPosition = new Vector(0,0);
+	}
 	
 	public PhysicsSprite(String id, String imageFileName) {
 		super(id, imageFileName);
