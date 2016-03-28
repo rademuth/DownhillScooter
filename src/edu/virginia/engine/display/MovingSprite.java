@@ -12,22 +12,28 @@ public class MovingSprite extends AnimatedSprite {
 	
 	private Random rand;
 	private boolean movingRight;
+	private int min;
+	private int max;
 	
 	//public void addAnimation(String name, String[] imageFileNames) {
 	//public void animate(String name, boolean loop, long duration) {
 	
-	public MovingSprite(String id, String[] imageFileNames) {
+	public MovingSprite(String id, String[] imageFileNames, int min, int max) {
 		super(id);
 		this.rand = new Random();
 		this.movingRight = true;
+		this.min = min;
+		this.max = max;
 		this.addAnimation("Move", imageFileNames);
 		this.animate("Move", true, 500);
 	}
 	
-	public MovingSprite(String id, String imageFileName, String[] imageFileNames) {
+	public MovingSprite(String id, String imageFileName, String[] imageFileNames, int min, int max) {
 		super(id, imageFileName);
 		this.rand = new Random();
 		this.movingRight = true;
+		this.min = min;
+		this.max = max;
 		this.addAnimation("Move", imageFileNames);
 		this.animate("Move", true, 500);
 	}
@@ -41,17 +47,35 @@ public class MovingSprite extends AnimatedSprite {
 			if (movingRight) {
 				this.setXPosition(this.getXPosition() - SPEED);
 				movingRight = false;
+				if (this.getXPosition() < this.min) {
+					this.setXPosition(this.min);
+					movingRight = true;
+					this.setScaleX(-this.getScaleX());
+				}
 			} else {
 				this.setXPosition(this.getXPosition() + SPEED);
 				movingRight = true;
+				if (this.getXPosition() > this.max) {
+					this.setXPosition(this.max);
+					movingRight = false;
+					this.setScaleX(-this.getScaleX());
+				}
 			}
 			this.setScaleX(-this.getScaleX());
 		} else {
 			// Continue in the same direction
 			if (movingRight) {
 				this.setXPosition(this.getXPosition() + SPEED);
+				if (this.getXPosition() > this.max) {
+					this.setXPosition(this.max);
+					movingRight = false;
+				}
 			} else {
 				this.setXPosition(this.getXPosition() - SPEED);
+				if (this.getXPosition() < this.min) {
+					this.setXPosition(this.min);
+					movingRight = true;
+				}
 			}
 		}
 			
