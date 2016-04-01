@@ -30,14 +30,17 @@ public class LabOneGame extends Game {
 	private final static int GAME_WIDTH = 500;
 	private final static int GAME_HEIGHT = 725;
 
-	private long lastJump;
 	private Sprite scooter;
 	private PhysicsSprite obstacleContainer;
 	private DisplayObjectContainer lineContainer;
 	private DisplayObjectContainer potholeContainer;
 	private DisplayObjectContainer trafficConeContainer;
 	private DisplayObjectContainer dogContainer;
+	private DisplayObjectContainer uiContainer;
 
+	private long lastJump;
+	private double brakingFluid;
+	
 	static boolean firstPass = true;
 	
 	/**
@@ -46,6 +49,8 @@ public class LabOneGame extends Game {
 	public LabOneGame() {
 		super("Lab One Test Game", GAME_WIDTH, GAME_HEIGHT);
 		this.lastJump = System.nanoTime();
+		this.brakingFluid = 100;
+		
 		this.scooter = new Sprite("Scooter", "Scooter.png");
 		this.scooter.setXPivotPoint(this.scooter.getUnscaledWidth()/2);
 		this.scooter.setYPivotPoint(this.scooter.getUnscaledHeight()/2);
@@ -57,12 +62,14 @@ public class LabOneGame extends Game {
 		this.potholeContainer = new DisplayObjectContainer("Pothole Container");
 		this.trafficConeContainer = new DisplayObjectContainer("Traffic Cone Container");
 		this.dogContainer = new DisplayObjectContainer("Dog Container");
+		this.uiContainer = new DisplayObjectContainer("UI Container");
 		this.obstacleContainer.addChild(this.lineContainer);
 		this.obstacleContainer.addChild(this.potholeContainer);
 		this.obstacleContainer.addChild(this.trafficConeContainer);
 		this.obstacleContainer.addChild(this.dogContainer);
 		this.addChild(this.obstacleContainer);
 		this.addChild(this.scooter);
+		this.addChild(this.uiContainer);
 	}
 	
 	public boolean canJump() {
@@ -179,7 +186,20 @@ public class LabOneGame extends Game {
 					tween.animate(TweenableParam.SCALE_Y, 1.25, 1, JUMP_TIME/2, JUMP_TIME/2);
 					tweenJuggler.add(tween);
 				}
-			}			
+			}	
+			
+			if (obstacleContainer != null) {
+				// Slow down the character
+				if (pressedKeys.contains(KeyEvent.getKeyText(KeyEvent.VK_SPACE)) && this.brakingFluid > 0) {
+					this.brakingFluid -= 1;
+					this.obstacleContainer.addYVelocity(10);
+					if (this.brakingFluid < 0)
+						this.brakingFluid = 0;
+					if (this.obstacleContainer.getYVelocity() > 0)
+						this.obstacleContainer.setYVelocity(0);
+				}
+			}
+			
 		} else {
 			firstPass = false;
 		}

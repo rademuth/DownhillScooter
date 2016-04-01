@@ -42,6 +42,22 @@ public class PhysicsSprite extends AnimatedSprite {
 	public void setYVelocity(double yVelocity) {
 		this.velocity.setY(yVelocity);
 	}
+	
+	public double getXVelocity() {
+		return this.velocity.getX();
+	}
+
+	public double getYVelocity() {
+		return this.velocity.getY();
+	}
+	
+	public void addXVelocity(double xVelocity) {
+		this.velocity.setX(this.velocity.getX() + xVelocity);
+	}
+	
+	public void addYVelocity(double yVelocity) {
+		this.velocity.setY(this.velocity.getY() + yVelocity);
+	}
 
 	public Vector getAcceleration() {
 		return acceleration;
