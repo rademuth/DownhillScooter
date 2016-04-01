@@ -25,10 +25,12 @@ import edu.virginia.engine.util.Vector;
 public class LabOneGame extends Game {
 
 	private final static String[] dogImages = {"Dog_move_1.png", "Dog_move_2.png"};
-	private final static double INITIAL_VELOCITY = -125;
-	private final static long JUMP_TIME = 500;
 	private final static int GAME_WIDTH = 500;
 	private final static int GAME_HEIGHT = 725;
+	
+	private final static double INITIAL_VELOCITY = -125;
+	private final static long JUMP_TIME = 500;
+	private final static double MAX_FLUID = 100;
 
 	private Sprite scooter;
 	private PhysicsSprite obstacleContainer;
@@ -37,6 +39,8 @@ public class LabOneGame extends Game {
 	private DisplayObjectContainer trafficConeContainer;
 	private DisplayObjectContainer dogContainer;
 	private DisplayObjectContainer uiContainer;
+	private Sprite fluidSprite;
+	private Sprite fluidFrameSprite;
 
 	private long lastJump;
 	private double brakingFluid;
@@ -49,7 +53,12 @@ public class LabOneGame extends Game {
 	public LabOneGame() {
 		super("Lab One Test Game", GAME_WIDTH, GAME_HEIGHT);
 		this.lastJump = System.nanoTime();
-		this.brakingFluid = 100;
+		this.brakingFluid = MAX_FLUID;
+		
+		this.fluidSprite = new Sprite("Fluid", "Fluid.png");
+		this.fluidFrameSprite = new Sprite("Fluid Frame", "Frame.png");
+		this.fluidSprite.setAlpha(0.75f);
+		this.fluidFrameSprite.setAlpha(0.90f);
 		
 		this.scooter = new Sprite("Scooter", "Scooter.png");
 		this.scooter.setXPivotPoint(this.scooter.getUnscaledWidth()/2);
@@ -63,10 +72,14 @@ public class LabOneGame extends Game {
 		this.trafficConeContainer = new DisplayObjectContainer("Traffic Cone Container");
 		this.dogContainer = new DisplayObjectContainer("Dog Container");
 		this.uiContainer = new DisplayObjectContainer("UI Container");
+		this.uiContainer.setXPosition(25);
+		this.uiContainer.setYPosition(GAME_HEIGHT-75);
 		this.obstacleContainer.addChild(this.lineContainer);
 		this.obstacleContainer.addChild(this.potholeContainer);
 		this.obstacleContainer.addChild(this.trafficConeContainer);
 		this.obstacleContainer.addChild(this.dogContainer);
+		this.uiContainer.addChild(fluidSprite);
+		this.uiContainer.addChild(fluidFrameSprite);
 		this.addChild(this.obstacleContainer);
 		this.addChild(this.scooter);
 		this.addChild(this.uiContainer);
@@ -197,6 +210,7 @@ public class LabOneGame extends Game {
 						this.brakingFluid = 0;
 					if (this.obstacleContainer.getYVelocity() > 0)
 						this.obstacleContainer.setYVelocity(0);
+					this.fluidSprite.setScaleX(this.brakingFluid / MAX_FLUID);
 				}
 			}
 			

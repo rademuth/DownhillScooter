@@ -1,6 +1,7 @@
 package edu.virginia.engine.display;
 
 import java.awt.AlphaComposite;
+import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
@@ -212,6 +213,7 @@ public class Game extends DisplayObjectContainer implements ActionListener, KeyL
 	
 	public void setScenePanel(GameScenePanel scenePanel) {
 		this.scenePanel = scenePanel;
+		this.scenePanel.setBackground(Color.GRAY);
 		this.getMainFrame().add(this.scenePanel);
 		getMainFrame().setFocusable(true);
 		getMainFrame().requestFocusInWindow();
