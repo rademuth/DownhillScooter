@@ -29,15 +29,21 @@ public class LabOneGame extends Game {
 	private final static int GAME_HEIGHT = 725;
 	
 	private final static double INITIAL_VELOCITY = -125;
+	private final static double VELOCITY_INCREMENT = 10;
 	private final static long JUMP_TIME = 500;
 	private final static double MAX_FLUID = 100;
+	private final static double FLUID_INCREMENT = 1;
+	private final static double MAX_HEALTH = 0;
+	private final static double HEALTH_INCREMENT = 0;
 
 	private Sprite scooter;
-	private PhysicsSprite obstacleContainer;
+	private PhysicsSprite physicsContainer;
 	private DisplayObjectContainer lineContainer;
 	private DisplayObjectContainer potholeContainer;
 	private DisplayObjectContainer trafficConeContainer;
 	private DisplayObjectContainer dogContainer;
+	private DisplayObjectContainer fluidContainer;
+	private DisplayObjectContainer heartContainer;
 	private DisplayObjectContainer uiContainer;
 	private Sprite fluidSprite;
 	private Sprite fluidFrameSprite;
@@ -55,7 +61,7 @@ public class LabOneGame extends Game {
 		this.lastJump = System.nanoTime();
 		this.brakingFluid = MAX_FLUID;
 		
-		this.fluidSprite = new Sprite("Fluid", "Fluid.png");
+		this.fluidSprite = new Sprite("Fluid", "Fluid_bar.png");
 		this.fluidFrameSprite = new Sprite("Fluid Frame", "Frame.png");
 		this.fluidSprite.setAlpha(0.75f);
 		this.fluidFrameSprite.setAlpha(0.90f);
@@ -65,22 +71,26 @@ public class LabOneGame extends Game {
 		this.scooter.setYPivotPoint(this.scooter.getUnscaledHeight()/2);
 		this.scooter.setXPosition(GAME_WIDTH/2);
 		this.scooter.setYPosition(this.scooter.getUnscaledHeight()/2);
-		this.obstacleContainer = new PhysicsSprite("ObstacleParent");
-		this.obstacleContainer.setYVelocity(INITIAL_VELOCITY);
+		this.physicsContainer = new PhysicsSprite("ObstacleParent");
+		this.physicsContainer.setYVelocity(INITIAL_VELOCITY);
 		this.lineContainer = new DisplayObjectContainer("Line Container");
 		this.potholeContainer = new DisplayObjectContainer("Pothole Container");
 		this.trafficConeContainer = new DisplayObjectContainer("Traffic Cone Container");
 		this.dogContainer = new DisplayObjectContainer("Dog Container");
+		this.fluidContainer = new DisplayObjectContainer("Fluid Container");
+		this.heartContainer = new DisplayObjectContainer("Heart Container");
 		this.uiContainer = new DisplayObjectContainer("UI Container");
 		this.uiContainer.setXPosition(25);
 		this.uiContainer.setYPosition(GAME_HEIGHT-75);
-		this.obstacleContainer.addChild(this.lineContainer);
-		this.obstacleContainer.addChild(this.potholeContainer);
-		this.obstacleContainer.addChild(this.trafficConeContainer);
-		this.obstacleContainer.addChild(this.dogContainer);
+		this.physicsContainer.addChild(this.lineContainer);
+		this.physicsContainer.addChild(this.potholeContainer);
+		this.physicsContainer.addChild(this.trafficConeContainer);
+		this.physicsContainer.addChild(this.dogContainer);
+		this.physicsContainer.addChild(this.fluidContainer);
+		this.physicsContainer.addChild(this.heartContainer);
 		this.uiContainer.addChild(fluidSprite);
 		this.uiContainer.addChild(fluidFrameSprite);
-		this.addChild(this.obstacleContainer);
+		this.addChild(this.physicsContainer);
 		this.addChild(this.scooter);
 		this.addChild(this.uiContainer);
 	}
@@ -117,6 +127,20 @@ public class LabOneGame extends Game {
 				this.dogContainer.addChild(s);
 				this.addSprite(s);
 				break;
+			case FLUID:
+				s = new Sprite("Fluid", "Fluid.png", type);
+				s.setPivotPoint(s.getUnscaledWidth()/2, s.getUnscaledHeight()/2);
+				s.setPosition(xPos, yPos);
+				this.fluidContainer.addChild(s);
+				this.addSprite(s);
+				break;
+			case HEART:
+				s = new Sprite("Heart", "Heart.png", type);
+				s.setPivotPoint(s.getUnscaledWidth()/2, s.getUnscaledHeight()/2);
+				s.setPosition(xPos, yPos);
+				this.heartContainer.addChild(s);
+				this.addSprite(s);
+				break;
 		}
 	}
 	
@@ -125,6 +149,7 @@ public class LabOneGame extends Game {
 		s.setPivotPoint(s.getUnscaledWidth()/2, s.getUnscaledHeight()/2);
 		s.setPosition(xPos, yPos);
 		this.lineContainer.addChild(s);
+		this.addSprite(s);
 	}
 	
 	/**
@@ -147,12 +172,12 @@ public class LabOneGame extends Game {
 			List<Sprite> returnObjects = new ArrayList<Sprite>();
 			returnObjects.clear();
 			this.getQuadtree().retrieve(returnObjects, scooter);
-			for (Sprite obstacle : returnObjects) {
+			for (Sprite s : returnObjects) {
 				// Run collision detection algorithm between objects
-				if (scooter.collidesWith(obstacle)) {
+				if (scooter.collidesWith(s)) {
 					// TODO : Handle collision between the scooter and the given obstacle
-					if (obstacle.type != null) {
-						switch (obstacle.type) {
+					if (s.type != null) {
+						switch (s.type) {
 							case POTHOLE:
 								if (!this.isInAir()) {
 									System.out.println("Collision");
@@ -164,6 +189,16 @@ public class LabOneGame extends Game {
 							case DOG:
 								System.out.println("Collision");
 								break;
+							case FLUID:
+								System.out.println("Fluid");
+								s.setVisible(false);
+								this.brakingFluid = MAX_FLUID;
+								this.fluidSprite.setScaleX(1);
+							case HEART:
+								System.out.println("Heart");
+								s.setVisible(false);
+								// this.health = MAX_HEALTH;
+								// this.healthSprite.setScaleX(1);
 						}
 					}
 				}
@@ -201,15 +236,15 @@ public class LabOneGame extends Game {
 				}
 			}	
 			
-			if (obstacleContainer != null) {
+			if (physicsContainer != null) {
 				// Slow down the character
 				if (pressedKeys.contains(KeyEvent.getKeyText(KeyEvent.VK_SPACE)) && this.brakingFluid > 0) {
-					this.brakingFluid -= 1;
-					this.obstacleContainer.addYVelocity(10);
+					this.brakingFluid -= FLUID_INCREMENT;
+					this.physicsContainer.addYVelocity(VELOCITY_INCREMENT);
 					if (this.brakingFluid < 0)
 						this.brakingFluid = 0;
-					if (this.obstacleContainer.getYVelocity() > 0)
-						this.obstacleContainer.setYVelocity(0);
+					if (this.physicsContainer.getYVelocity() > 0)
+						this.physicsContainer.setYVelocity(0);
 					this.fluidSprite.setScaleX(this.brakingFluid / MAX_FLUID);
 				}
 			}
@@ -259,6 +294,8 @@ public class LabOneGame extends Game {
 			game.addObstacle(ObstacleType.TRAFFIC_CONE, GAME_WIDTH - 35*i, 800 + 50*i);
 		}
 		game.addObstacle(ObstacleType.DOG, GAME_WIDTH/2, 1250);
+		
+		game.addObstacle(ObstacleType.FLUID, GAME_WIDTH/2, 1500);
 				
 		for (int i = 0; i< 1000; i++) {
 			game.addLine(GAME_WIDTH/2, 256*i);
