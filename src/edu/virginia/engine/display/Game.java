@@ -4,7 +4,6 @@ import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -17,7 +16,6 @@ import java.util.List;
 import javax.swing.JFrame;
 import javax.swing.Timer;
 
-import edu.virginia.engine.util.Quadtree;
 import edu.virginia.engine.util.SoundManager;
 import edu.virginia.engine.util.TweenJuggler;
 
@@ -44,7 +42,6 @@ public class Game extends DisplayObjectContainer implements ActionListener, KeyL
 	
 	/* The DisplayObjects and Quadtree for this game */
 	private List<Sprite> obstacles;
-	private Quadtree quadtree;
 	
 	/* The SoundManager for this game */
 	public static SoundManager soundMgr = SoundManager.getInstance();
@@ -66,7 +63,6 @@ public class Game extends DisplayObjectContainer implements ActionListener, KeyL
 		scenePanel.setLayout(null);
 	
 		obstacles = new ArrayList<Sprite>();
-		quadtree = new Quadtree(0, new Rectangle(0,0,width,height));
 	}
 	
 	public int getWidth() {
@@ -79,10 +75,6 @@ public class Game extends DisplayObjectContainer implements ActionListener, KeyL
 	
 	public List<Sprite> getObstacles() {
 		return this.obstacles;
-	}
-	
-	public Quadtree getQuadtree() {
-		return this.quadtree;
 	}
 	
 	public void setFramesPerSecond(int fps){
@@ -187,15 +179,8 @@ public class Game extends DisplayObjectContainer implements ActionListener, KeyL
 	public void update(ArrayList<String> pressedKeys) {
 		super.update(pressedKeys);
 		
-		// Reset the game's Quadtree
-		quadtree.clear();
-		for (Sprite obstacle : obstacles) {
-			quadtree.insert(obstacle);
-		}
-		
 		// Update the game's TweenJuggler
-		tweenJuggler.nextFrame();
-	
+		tweenJuggler.nextFrame();	
 	}
 	
 	@Override
@@ -213,7 +198,7 @@ public class Game extends DisplayObjectContainer implements ActionListener, KeyL
 	
 	public void setScenePanel(GameScenePanel scenePanel) {
 		this.scenePanel = scenePanel;
-		this.scenePanel.setBackground(Color.GRAY);
+		this.scenePanel.setBackground(Color.LIGHT_GRAY);
 		this.getMainFrame().add(this.scenePanel);
 		getMainFrame().setFocusable(true);
 		getMainFrame().requestFocusInWindow();
@@ -235,14 +220,13 @@ public class Game extends DisplayObjectContainer implements ActionListener, KeyL
 		if(pressedKeys.contains(KeyEvent.getKeyText(e.getKeyCode())))
 			pressedKeys.remove(KeyEvent.getKeyText(e.getKeyCode()));
 	}
-
-	public void keyTyped(KeyEvent e) {
-		// TODO Auto-generated method stub
-		
-	}
 	
 	public void addSprite(Sprite d) {
 		obstacles.add(d);
+	}
+
+	public void keyTyped(KeyEvent arg0) {
+		
 	}
 	
 }
