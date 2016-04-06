@@ -1,10 +1,8 @@
 package edu.virginia.lab1test;
 
 import java.awt.Graphics;
-import java.awt.TextField;
 import java.awt.event.KeyEvent;
 import java.awt.font.TextAttribute;
-import java.text.AttributedCharacterIterator;
 import java.text.AttributedString;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -34,6 +32,7 @@ public class LabOneGame extends Game {
 	private final static double VELOCITY_INCREMENT = 10;
 	private final static double HORIZONTAL_INCREMENT = 5;
 	private final static long JUMP_TIME = 750;
+	private final static long INVINCIBILITY_TIME = 1000;
 	private final static double MAX_FLUID = 100;
 	private final static double FLUID_INCREMENT = 1;
 	private final static double MAX_HEALTH = 100;
@@ -48,50 +47,52 @@ public class LabOneGame extends Game {
 	private DisplayObjectContainer fluidContainer;
 	private DisplayObjectContainer heartContainer;
 	private DisplayObjectContainer uiContainer;
-	private Sprite fluidSprite;
-	private Sprite fluidIconSprite;
-	private Sprite fluidFrameSprite;	
-	private Sprite heartSprite;
-	private Sprite heartIconSprite;
-	private Sprite heartFrameSprite;
+	private Sprite fluidBar;
+	private Sprite fluidIcon;
+	private Sprite fluidFrame;	
+	private Sprite healthBar;
+	private Sprite healthIcon;
+	private Sprite healthFrame;
 
 	private long lastJump;
+	private long lastCollision;
 	private double fluid;
 	private double health;
-	
-	private boolean firstPass = true;
-	
 	private double score;
 	
+	private boolean firstPass = true;
+		
 	/**
 	 * Constructor. See constructor in Game.java for details on the parameters given
 	 * */
 	public LabOneGame() {
 		super("Lab One Test Game", GAME_WIDTH, GAME_HEIGHT);
+
 		this.lastJump = System.nanoTime();
+		this.lastCollision = System.nanoTime();
 		this.fluid = MAX_FLUID;
 		this.health = MAX_HEALTH;
 		this.score = 0;
 		
-		this.fluidSprite = new Sprite("Fluid", "Fluid_bar.png");
-		this.fluidIconSprite = new Sprite("Fluid Icon", "Fluid_icon.png");
-		this.fluidFrameSprite = new Sprite("Fluid Frame", "Frame.png");
-		this.fluidSprite.setAlpha(0.75f);
-		this.fluidIconSprite.setAlpha(0.90f);
-		this.fluidFrameSprite.setAlpha(0.90f);
-		this.fluidSprite.setXPosition(25+fluidIconSprite.getUnscaledWidth());
-		this.fluidIconSprite.setXPosition(20);
-		this.fluidFrameSprite.setXPosition(25+fluidIconSprite.getUnscaledWidth());
+		this.fluidBar = new Sprite("Fluid", "Fluid_bar.png");
+		this.fluidIcon = new Sprite("Fluid Icon", "Fluid_icon.png");
+		this.fluidFrame = new Sprite("Fluid Frame", "Frame.png");
+		this.fluidBar.setAlpha(0.75f);
+		this.fluidIcon.setAlpha(0.90f);
+		this.fluidFrame.setAlpha(0.90f);
+		this.fluidBar.setXPosition(25+fluidIcon.getUnscaledWidth());
+		this.fluidIcon.setXPosition(20);
+		this.fluidFrame.setXPosition(25+fluidIcon.getUnscaledWidth());
 		
-		this.heartSprite = new Sprite("Health", "Health_bar.png");
-		this.heartIconSprite = new Sprite("Heart Icon", "Heart_icon.png");
-		this.heartFrameSprite = new Sprite("Health Frame", "Frame.png");
-		this.heartSprite.setAlpha(0.75f);
-		this.heartIconSprite.setAlpha(0.90f);
-		this.heartFrameSprite.setAlpha(0.90f);
-		this.heartSprite.setXPosition(GAME_WIDTH-(25+heartSprite.getUnscaledWidth()));
-		this.heartIconSprite.setXPosition(GAME_WIDTH-(30+heartSprite.getUnscaledWidth()+heartIconSprite.getUnscaledWidth()));
-		this.heartFrameSprite.setXPosition(GAME_WIDTH-(25+heartFrameSprite.getUnscaledWidth()));
+		this.healthBar = new Sprite("Health", "Health_bar.png");
+		this.healthIcon = new Sprite("Heart Icon", "Heart_icon.png");
+		this.healthFrame = new Sprite("Health Frame", "Frame.png");
+		this.healthBar.setAlpha(0.75f);
+		this.healthIcon.setAlpha(0.90f);
+		this.healthFrame.setAlpha(0.90f);
+		this.healthBar.setXPosition(GAME_WIDTH-(25+healthBar.getUnscaledWidth()));
+		this.healthIcon.setXPosition(GAME_WIDTH-(30+healthBar.getUnscaledWidth()+healthIcon.getUnscaledWidth()));
+		this.healthFrame.setXPosition(GAME_WIDTH-(25+healthFrame.getUnscaledWidth()));
 		
 		this.scooter = new Sprite("Scooter", "Test 2.png");
 		this.scooter.setXPivotPoint(this.scooter.getUnscaledWidth()/2);
@@ -119,12 +120,12 @@ public class LabOneGame extends Game {
 		this.physicsContainer.addChild(this.fluidContainer);
 		this.physicsContainer.addChild(this.heartContainer);
 		
-		this.uiContainer.addChild(fluidSprite);
-		this.uiContainer.addChild(fluidIconSprite);		
-		this.uiContainer.addChild(fluidFrameSprite);
-		this.uiContainer.addChild(heartSprite);
-		this.uiContainer.addChild(heartIconSprite);
-		this.uiContainer.addChild(heartFrameSprite);
+		this.uiContainer.addChild(fluidBar);
+		this.uiContainer.addChild(fluidIcon);		
+		this.uiContainer.addChild(fluidFrame);
+		this.uiContainer.addChild(healthBar);
+		this.uiContainer.addChild(healthIcon);
+		this.uiContainer.addChild(healthFrame);
 		
 		this.addChild(this.physicsContainer);
 		this.addChild(this.scooter);
@@ -133,6 +134,39 @@ public class LabOneGame extends Game {
 	
 	public boolean canJump() {
 		return (System.nanoTime() - this.lastJump) / 1000000 > JUMP_TIME;
+	}
+	
+	public boolean isInvincible() {
+		return (System.nanoTime() - this.lastCollision) / 1000000 < INVINCIBILITY_TIME;
+	}
+	
+	public void subtractFluid() {
+		this.fluid -= FLUID_INCREMENT;
+		this.physicsContainer.addYVelocity(VELOCITY_INCREMENT);
+		if (this.fluid < 0)
+			this.fluid = 0;
+		if (this.physicsContainer.getYVelocity() > 0)
+			this.physicsContainer.setYVelocity(0);
+		this.fluidBar.setScaleX(this.fluid / MAX_FLUID);
+	}
+	
+	public void pickupFluid() {
+		this.fluid = MAX_FLUID;
+		this.fluidBar.setScaleX(1);
+	}
+	
+	public void subtractHealth() {
+		this.health -= HEALTH_INCREMENT;
+		if (this.health <= 0){
+			System.out.println("You're dead!");
+			System.exit(0);
+		}
+		this.healthBar.setScaleX(this.health / MAX_HEALTH);
+	}
+	
+	public void pickupHealth() {
+		this.health = MAX_HEALTH;
+		this.healthBar.setScaleX(1);
 	}
 	
 	public boolean isInAir() {
@@ -219,45 +253,41 @@ public class LabOneGame extends Game {
 					if (s.type != null) {
 						switch (s.type) {
 							case POTHOLE:
-								if (!this.isInAir()) {
+								if (!this.isInAir() && !this.isInvincible()) {
 									System.out.println("Collision");
-									this.health -= HEALTH_INCREMENT;
-									if (this.health < 0)
-										this.health = 0;
-									this.heartSprite.setScaleX(this.health / MAX_HEALTH);
+									this.subtractHealth();
 									iter.remove();
+									this.lastCollision = System.nanoTime();
 								}
 								break;
 							case TRAFFIC_CONE:
-								System.out.println("Collision");
-								this.health -= HEALTH_INCREMENT;
-								if (this.health < 0)
-									this.health = 0;
-								this.heartSprite.setScaleX(this.health / MAX_HEALTH);
-								iter.remove();
+								if (!this.isInvincible()) {
+									System.out.println("Collision");
+									this.subtractHealth();
+									iter.remove();
+									this.lastCollision = System.nanoTime();
+								}
 								break;
 							case DOG:
-								System.out.println("Collision");
-								this.health -= HEALTH_INCREMENT;
-								if (this.health < 0)
-									this.health = 0;
-								this.heartSprite.setScaleX(this.health / MAX_HEALTH);
-								iter.remove();
+								if (!this.isInvincible()) {
+									System.out.println("Collision");
+									this.subtractHealth();
+									iter.remove();
+									this.lastCollision = System.nanoTime();
+								}
 								break;
 							case FLUID:
 								System.out.println("Fluid");
 								soundMgr.playSoundEffect("Fluid");
 								s.setVisible(false);
-								this.fluid = MAX_FLUID;
-								this.fluidSprite.setScaleX(1);
+								this.pickupFluid();
 								iter.remove();
 								break;
 							case HEART:
 								System.out.println("Heart");
 								soundMgr.playSoundEffect("Heart");
 								s.setVisible(false);
-								this.health = MAX_HEALTH;
-								this.heartSprite.setScaleX(1);
+								pickupHealth();
 								iter.remove();
 								break;
 						}
@@ -300,13 +330,7 @@ public class LabOneGame extends Game {
 			if (physicsContainer != null) {
 				// Slow down the character
 				if (pressedKeys.contains(KeyEvent.getKeyText(KeyEvent.VK_SPACE)) && this.fluid > 0) {
-					this.fluid -= FLUID_INCREMENT;
-					this.physicsContainer.addYVelocity(VELOCITY_INCREMENT);
-					if (this.fluid < 0)
-						this.fluid = 0;
-					if (this.physicsContainer.getYVelocity() > 0)
-						this.physicsContainer.setYVelocity(0);
-					this.fluidSprite.setScaleX(this.fluid / MAX_FLUID);
+					this.subtractFluid();
 				}
 			}
 			
