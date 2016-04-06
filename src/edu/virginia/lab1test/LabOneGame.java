@@ -31,10 +31,11 @@ public class LabOneGame extends Game {
 	private final static double INITIAL_VELOCITY = -125;
 	private final static double VELOCITY_INCREMENT = 10;
 	private final static long JUMP_TIME = 500;
+	private final static long INVINCIBILITY_TIME = 1000;
 	private final static double MAX_FLUID = 100;
 	private final static double FLUID_INCREMENT = 1;
-	private final static double MAX_HEALTH = 0;
-	private final static double HEALTH_INCREMENT = 0;
+	private final static double MAX_HEALTH = 100;
+	private final static double HEALTH_INCREMENT = 25;
 
 	private Sprite scooter;
 	private PhysicsSprite physicsContainer;
@@ -47,9 +48,14 @@ public class LabOneGame extends Game {
 	private DisplayObjectContainer uiContainer;
 	private Sprite fluidSprite;
 	private Sprite fluidFrameSprite;
+	private Sprite healthSprite;
+	private Sprite healthFrameSprite;
 
 	private long lastJump;
 	private double brakingFluid;
+	private double health;
+	private boolean invincible;
+	private long invincibleStartTime;
 	
 	static boolean firstPass = true;
 	
@@ -59,12 +65,23 @@ public class LabOneGame extends Game {
 	public LabOneGame() {
 		super("Lab One Test Game", GAME_WIDTH, GAME_HEIGHT);
 		this.lastJump = System.nanoTime();
+		this.invincibleStartTime = 0;
 		this.brakingFluid = MAX_FLUID;
+		this.health = MAX_HEALTH;
 		
 		this.fluidSprite = new Sprite("Fluid", "Fluid_bar.png");
 		this.fluidFrameSprite = new Sprite("Fluid Frame", "Frame.png");
 		this.fluidSprite.setAlpha(0.75f);
 		this.fluidFrameSprite.setAlpha(0.90f);
+		
+		this.healthSprite = new Sprite("Health", "Health.png");
+		this.healthFrameSprite = new Sprite("Health Frame", "Frame.png");
+		this.healthSprite.setAlpha(0.75f);
+		this.healthFrameSprite.setAlpha(0.90f);
+		this.healthSprite.setXPosition(175);
+		this.healthFrameSprite.setXPosition(175);
+		
+		this.invincible = false;
 		
 		this.scooter = new Sprite("Scooter", "Scooter.png");
 		this.scooter.setXPivotPoint(this.scooter.getUnscaledWidth()/2);
@@ -90,6 +107,8 @@ public class LabOneGame extends Game {
 		this.physicsContainer.addChild(this.heartContainer);
 		this.uiContainer.addChild(fluidSprite);
 		this.uiContainer.addChild(fluidFrameSprite);
+		this.uiContainer.addChild(healthSprite);
+		this.uiContainer.addChild(healthFrameSprite);
 		this.addChild(this.physicsContainer);
 		this.addChild(this.scooter);
 		this.addChild(this.uiContainer);
@@ -97,6 +116,24 @@ public class LabOneGame extends Game {
 	
 	public boolean canJump() {
 		return (System.nanoTime() - this.lastJump) / 1000000 > JUMP_TIME;
+	}
+	
+	public boolean canHitObstacles() {
+		return (System.nanoTime() - this.invincibleStartTime) /1000000 > INVINCIBILITY_TIME;
+	}
+	
+	public void subtractHealth() {
+		this.health -= HEALTH_INCREMENT;
+		if(this.health <= 0){
+			System.out.println("You're dead!");
+			System.exit(0);
+		}
+		this.healthSprite.setScaleX(this.health/this.MAX_HEALTH);
+	}
+	
+	public void pickupHealth() {
+		this.health = MAX_HEALTH;
+		this.healthSprite.setScaleX(1);
 	}
 	
 	public boolean isInAir() {
@@ -179,26 +216,41 @@ public class LabOneGame extends Game {
 					if (s.type != null) {
 						switch (s.type) {
 							case POTHOLE:
-								if (!this.isInAir()) {
-									System.out.println("Collision");
+								if(canHitObstacles()){
+									if (!this.isInAir()) {
+										System.out.println("Collision");
+										subtractHealth();
+										this.invincibleStartTime = System.nanoTime();
+									}
 								}
 								break;
 							case TRAFFIC_CONE:
-								System.out.println("Collision");
+								if(canHitObstacles()){
+									System.out.println("Collision");
+									subtractHealth();
+									this.invincibleStartTime = System.nanoTime();
+								}
 								break;
 							case DOG:
-								System.out.println("Collision");
+								if(canHitObstacles()){
+									System.out.println("Collision");
+									subtractHealth();
+									this.invincibleStartTime = System.nanoTime();
+								}
 								break;
 							case FLUID:
 								System.out.println("Fluid");
 								s.setVisible(false);
 								this.brakingFluid = MAX_FLUID;
 								this.fluidSprite.setScaleX(1);
+								break;
 							case HEART:
 								System.out.println("Heart");
 								s.setVisible(false);
+								pickupHealth();
 								// this.health = MAX_HEALTH;
 								// this.healthSprite.setScaleX(1);
+								break;
 						}
 					}
 				}
