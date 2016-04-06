@@ -151,6 +151,7 @@ public class LabOneGame extends Game {
 	}
 	
 	public void pickupFluid() {
+		soundMgr.playSoundEffect("Fluid");
 		this.fluid = MAX_FLUID;
 		this.fluidBar.setScaleX(1);
 	}
@@ -162,9 +163,22 @@ public class LabOneGame extends Game {
 			System.exit(0);
 		}
 		this.healthBar.setScaleX(this.health / MAX_HEALTH);
+		this.lastCollision = System.nanoTime();
+		// Make the scooter 'blink' to indicate temporary invincibility
+		Tween tween = new Tween(scooter, new TweenTransition(TweenTransitionType.LINEAR));
+		tween.animate(TweenableParam.ALPHA, 1, 0.5, INVINCIBILITY_TIME/8, 0*INVINCIBILITY_TIME/8);
+		tween.animate(TweenableParam.ALPHA, 0.5, 1, INVINCIBILITY_TIME/8, 1*INVINCIBILITY_TIME/8);
+		tween.animate(TweenableParam.ALPHA, 1, 0.5, INVINCIBILITY_TIME/8, 2*INVINCIBILITY_TIME/8);
+		tween.animate(TweenableParam.ALPHA, 0.5, 1, INVINCIBILITY_TIME/8, 3*INVINCIBILITY_TIME/8);
+		tween.animate(TweenableParam.ALPHA, 1, 0.5, INVINCIBILITY_TIME/8, 4*INVINCIBILITY_TIME/8);
+		tween.animate(TweenableParam.ALPHA, 0.5, 1, INVINCIBILITY_TIME/8, 5*INVINCIBILITY_TIME/8);
+		tween.animate(TweenableParam.ALPHA, 1, 0.5, INVINCIBILITY_TIME/8, 6*INVINCIBILITY_TIME/8);
+		tween.animate(TweenableParam.ALPHA, 0.5, 1, INVINCIBILITY_TIME/8, 7*INVINCIBILITY_TIME/8);
+		tweenJuggler.add(tween);
 	}
 	
 	public void pickupHealth() {
+		soundMgr.playSoundEffect("Heart");
 		this.health = MAX_HEALTH;
 		this.healthBar.setScaleX(1);
 	}
@@ -257,7 +271,6 @@ public class LabOneGame extends Game {
 									System.out.println("Collision");
 									this.subtractHealth();
 									iter.remove();
-									this.lastCollision = System.nanoTime();
 								}
 								break;
 							case TRAFFIC_CONE:
@@ -265,7 +278,6 @@ public class LabOneGame extends Game {
 									System.out.println("Collision");
 									this.subtractHealth();
 									iter.remove();
-									this.lastCollision = System.nanoTime();
 								}
 								break;
 							case DOG:
@@ -273,19 +285,16 @@ public class LabOneGame extends Game {
 									System.out.println("Collision");
 									this.subtractHealth();
 									iter.remove();
-									this.lastCollision = System.nanoTime();
 								}
 								break;
 							case FLUID:
 								System.out.println("Fluid");
-								soundMgr.playSoundEffect("Fluid");
 								s.setVisible(false);
 								this.pickupFluid();
 								iter.remove();
 								break;
 							case HEART:
 								System.out.println("Heart");
-								soundMgr.playSoundEffect("Heart");
 								s.setVisible(false);
 								pickupHealth();
 								iter.remove();
