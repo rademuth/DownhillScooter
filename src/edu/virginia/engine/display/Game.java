@@ -198,7 +198,7 @@ public class Game extends DisplayObjectContainer implements ActionListener, KeyL
 	
 	public void setScenePanel(GameScenePanel scenePanel) {
 		this.scenePanel = scenePanel;
-		this.scenePanel.setBackground(Color.LIGHT_GRAY);
+		this.scenePanel.setBackground(Color.GRAY);
 		this.getMainFrame().add(this.scenePanel);
 		getMainFrame().setFocusable(true);
 		getMainFrame().requestFocusInWindow();

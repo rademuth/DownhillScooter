@@ -37,6 +37,9 @@ public class DisplayObject extends EventDispatcher {
 	
 	/* Reference to parent DisplayObject from Lab 3 */
 	private DisplayObject parent;
+	
+	public double hitboxYBase;
+	public double hitboxHeight;
 
 	/**
 	 * Constructors: can pass in the id OR the id and image's file path and
@@ -54,6 +57,8 @@ public class DisplayObject extends EventDispatcher {
 		this.rotation = 0;
 		this.alpha = 1;
 		this.parent = null;	
+		this.hitboxYBase = -1;
+		this.hitboxHeight = -1;
 	}
 
 	public DisplayObject(String id, String fileName) {
@@ -69,6 +74,8 @@ public class DisplayObject extends EventDispatcher {
 		this.rotation = 0;
 		this.alpha = 1;
 		this.parent = null;
+		this.hitboxYBase = -1;
+		this.hitboxHeight = -1;
 	}
 
 	public void setId(String id) {
@@ -275,7 +282,7 @@ public class DisplayObject extends EventDispatcher {
 			 */
 			reverseTransformations(g2d);
 			
-			// g2d.draw(this.getHitbox());
+			//g2d.draw(this.getHitbox());
 		}
 	}
 
@@ -329,25 +336,30 @@ public class DisplayObject extends EventDispatcher {
 	}
 	
 	public Rectangle getHitbox() {
-		Vector global = this.getLocalToGlobalCoors(-this.getXPivotPoint(), -this.getYPivotPoint());
-		return new Rectangle((int)global.getX(), (int)global.getY(), this.getUnscaledWidth(), this.getUnscaledHeight());
-		/*
-		Vector global;
-		if (scaleX >= 0) {
-			if (scaleY >= 0 ) {
-				global = this.getLocalToGlobalCoors(-this.getXPivotPoint()*scaleX, -this.getYPivotPoint()*scaleY);
+		if (this.hitboxHeight < 0) {
+			Vector global = this.getLocalToGlobalCoors(-this.getXPivotPoint(), -this.getYPivotPoint());
+			return new Rectangle((int)global.getX(), (int)global.getY(), this.getUnscaledWidth(), this.getUnscaledHeight());
+			/*
+			Vector global;
+			if (scaleX >= 0) {
+				if (scaleY >= 0 ) {
+					global = this.getLocalToGlobalCoors(-this.getXPivotPoint()*scaleX, -this.getYPivotPoint()*scaleY);
+				} else {
+					global = this.getLocalToGlobalCoors(-this.getXPivotPoint()*scaleX, (this.getUnscaledHeight()-this.getYPivotPoint())*scaleY);
+				}
 			} else {
-				global = this.getLocalToGlobalCoors(-this.getXPivotPoint()*scaleX, (this.getUnscaledHeight()-this.getYPivotPoint())*scaleY);
+				if (scaleY >= 0 ) {
+					global = this.getLocalToGlobalCoors((this.getUnscaledWidth()-this.getXPivotPoint())*scaleX, -this.getYPivotPoint()*scaleY);
+				} else {
+					global = this.getLocalToGlobalCoors((this.getUnscaledWidth()-this.getXPivotPoint())*scaleX, (this.getUnscaledHeight()-this.getYPivotPoint())*scaleY);
+				}
 			}
+			return new Rectangle((int)global.getX(), (int)global.getY(), (int)Math.abs((this.getUnscaledWidth()*scaleX)), (int)Math.abs((this.getUnscaledHeight()*scaleY)));
+			*/
 		} else {
-			if (scaleY >= 0 ) {
-				global = this.getLocalToGlobalCoors((this.getUnscaledWidth()-this.getXPivotPoint())*scaleX, -this.getYPivotPoint()*scaleY);
-			} else {
-				global = this.getLocalToGlobalCoors((this.getUnscaledWidth()-this.getXPivotPoint())*scaleX, (this.getUnscaledHeight()-this.getYPivotPoint())*scaleY);
-			}
+			Vector global = this.getLocalToGlobalCoors(-this.getXPivotPoint(), -this.getYPivotPoint());
+			return new Rectangle((int)global.getX(), (int)(global.getY() + this.hitboxYBase), this.getUnscaledWidth(), (int)this.hitboxHeight);
 		}
-		return new Rectangle((int)global.getX(), (int)global.getY(), (int)Math.abs((this.getUnscaledWidth()*scaleX)), (int)Math.abs((this.getUnscaledHeight()*scaleY)));
-		*/
 	}
 
 	public boolean collidesWith(DisplayObject d) {

@@ -37,7 +37,7 @@ public class GameScenePanel extends JPanel {
 		super.paintComponent(g);
 		gameRef.nextFrame(g);
 	}
-
+	
 	@Override
 	public String toString() {
 		return gameRef.getId() + " (width = " + this.getWidth()

@@ -1,7 +1,11 @@
 package edu.virginia.lab1test;
 
 import java.awt.Graphics;
+import java.awt.TextField;
 import java.awt.event.KeyEvent;
+import java.awt.font.TextAttribute;
+import java.text.AttributedCharacterIterator;
+import java.text.AttributedString;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -28,11 +32,12 @@ public class LabOneGame extends Game {
 	
 	private final static double INITIAL_VELOCITY = -125;
 	private final static double VELOCITY_INCREMENT = 10;
-	private final static long JUMP_TIME = 500;
+	private final static double HORIZONTAL_INCREMENT = 5;
+	private final static long JUMP_TIME = 750;
 	private final static double MAX_FLUID = 100;
 	private final static double FLUID_INCREMENT = 1;
 	private final static double MAX_HEALTH = 100;
-	private final static double HEALTH_INCREMENT = 2.5;
+	private final static double HEALTH_INCREMENT = 10;
 
 	private Sprite scooter;
 	private PhysicsSprite physicsContainer;
@@ -44,15 +49,19 @@ public class LabOneGame extends Game {
 	private DisplayObjectContainer heartContainer;
 	private DisplayObjectContainer uiContainer;
 	private Sprite fluidSprite;
-	private Sprite fluidFrameSprite;
-	private Sprite healthSprite;
-	private Sprite healthFrameSprite;
+	private Sprite fluidIconSprite;
+	private Sprite fluidFrameSprite;	
+	private Sprite heartSprite;
+	private Sprite heartIconSprite;
+	private Sprite heartFrameSprite;
 
 	private long lastJump;
 	private double fluid;
 	private double health;
 	
-	static boolean firstPass = true;
+	private boolean firstPass = true;
+	
+	private double score;
 	
 	/**
 	 * Constructor. See constructor in Game.java for details on the parameters given
@@ -62,26 +71,33 @@ public class LabOneGame extends Game {
 		this.lastJump = System.nanoTime();
 		this.fluid = MAX_FLUID;
 		this.health = MAX_HEALTH;
+		this.score = 0;
 		
 		this.fluidSprite = new Sprite("Fluid", "Fluid_bar.png");
+		this.fluidIconSprite = new Sprite("Fluid Icon", "Fluid_icon.png");
 		this.fluidFrameSprite = new Sprite("Fluid Frame", "Frame.png");
 		this.fluidSprite.setAlpha(0.75f);
+		this.fluidIconSprite.setAlpha(0.90f);
 		this.fluidFrameSprite.setAlpha(0.90f);
-		this.fluidSprite.setXPosition(25);
-		this.fluidFrameSprite.setXPosition(25);
+		this.fluidSprite.setXPosition(25+fluidIconSprite.getUnscaledWidth());
+		this.fluidIconSprite.setXPosition(20);
+		this.fluidFrameSprite.setXPosition(25+fluidIconSprite.getUnscaledWidth());
 		
-		this.healthSprite = new Sprite("Health", "Health_bar.png");
-		this.healthFrameSprite = new Sprite("Health Frame", "Frame.png");
-		this.healthSprite.setAlpha(0.75f);
-		this.healthFrameSprite.setAlpha(0.90f);
-		this.healthSprite.setXPosition(GAME_WIDTH-(25+healthSprite.getUnscaledWidth()));
-		this.healthFrameSprite.setXPosition(GAME_WIDTH-(25+healthFrameSprite.getUnscaledWidth()));
+		this.heartSprite = new Sprite("Health", "Health_bar.png");
+		this.heartIconSprite = new Sprite("Heart Icon", "Heart_icon.png");
+		this.heartFrameSprite = new Sprite("Health Frame", "Frame.png");
+		this.heartSprite.setAlpha(0.75f);
+		this.heartIconSprite.setAlpha(0.90f);
+		this.heartFrameSprite.setAlpha(0.90f);
+		this.heartSprite.setXPosition(GAME_WIDTH-(25+heartSprite.getUnscaledWidth()));
+		this.heartIconSprite.setXPosition(GAME_WIDTH-(30+heartSprite.getUnscaledWidth()+heartIconSprite.getUnscaledWidth()));
+		this.heartFrameSprite.setXPosition(GAME_WIDTH-(25+heartFrameSprite.getUnscaledWidth()));
 		
-		this.scooter = new Sprite("Scooter", "Scooter (new).png");
+		this.scooter = new Sprite("Scooter", "Test 2.png");
 		this.scooter.setXPivotPoint(this.scooter.getUnscaledWidth()/2);
-		this.scooter.setYPivotPoint(this.scooter.getUnscaledHeight()/2);
 		this.scooter.setXPosition(GAME_WIDTH/2);
-		this.scooter.setYPosition(this.scooter.getUnscaledHeight()/2);
+		this.scooter.hitboxYBase = this.scooter.getUnscaledHeight()/2;
+		this.scooter.hitboxHeight = this.scooter.getUnscaledHeight()/2;
 		
 		this.physicsContainer = new PhysicsSprite("ObstacleParent");
 		this.physicsContainer.setYVelocity(INITIAL_VELOCITY);
@@ -104,9 +120,11 @@ public class LabOneGame extends Game {
 		this.physicsContainer.addChild(this.heartContainer);
 		
 		this.uiContainer.addChild(fluidSprite);
+		this.uiContainer.addChild(fluidIconSprite);		
 		this.uiContainer.addChild(fluidFrameSprite);
-		this.uiContainer.addChild(healthSprite);
-		this.uiContainer.addChild(healthFrameSprite);
+		this.uiContainer.addChild(heartSprite);
+		this.uiContainer.addChild(heartIconSprite);
+		this.uiContainer.addChild(heartFrameSprite);
 		
 		this.addChild(this.physicsContainer);
 		this.addChild(this.scooter);
@@ -178,7 +196,14 @@ public class LabOneGame extends Game {
 	public void update(ArrayList<String> pressedKeys){
 		super.update(pressedKeys);		
 		
+		
 		if (!firstPass) {
+
+			if (this.health <= 0) {
+				this.stop();
+			}
+			
+			this.score -= this.physicsContainer.getYVelocity();
 			
 			/** 
 			 * Might have issues running during the first frame of the game since sprites
@@ -199,7 +224,7 @@ public class LabOneGame extends Game {
 									this.health -= HEALTH_INCREMENT;
 									if (this.health < 0)
 										this.health = 0;
-									this.healthSprite.setScaleX(this.health / MAX_HEALTH);
+									this.heartSprite.setScaleX(this.health / MAX_HEALTH);
 									iter.remove();
 								}
 								break;
@@ -208,7 +233,7 @@ public class LabOneGame extends Game {
 								this.health -= HEALTH_INCREMENT;
 								if (this.health < 0)
 									this.health = 0;
-								this.healthSprite.setScaleX(this.health / MAX_HEALTH);
+								this.heartSprite.setScaleX(this.health / MAX_HEALTH);
 								iter.remove();
 								break;
 							case DOG:
@@ -216,11 +241,12 @@ public class LabOneGame extends Game {
 								this.health -= HEALTH_INCREMENT;
 								if (this.health < 0)
 									this.health = 0;
-								this.healthSprite.setScaleX(this.health / MAX_HEALTH);
+								this.heartSprite.setScaleX(this.health / MAX_HEALTH);
 								iter.remove();
 								break;
 							case FLUID:
 								System.out.println("Fluid");
+								soundMgr.playSoundEffect("Fluid");
 								s.setVisible(false);
 								this.fluid = MAX_FLUID;
 								this.fluidSprite.setScaleX(1);
@@ -228,9 +254,10 @@ public class LabOneGame extends Game {
 								break;
 							case HEART:
 								System.out.println("Heart");
+								soundMgr.playSoundEffect("Heart");
 								s.setVisible(false);
 								this.health = MAX_HEALTH;
-								this.healthSprite.setScaleX(1);
+								this.heartSprite.setScaleX(1);
 								iter.remove();
 								break;
 						}
@@ -243,13 +270,13 @@ public class LabOneGame extends Game {
 				if (pressedKeys.contains(KeyEvent.getKeyText(KeyEvent.VK_LEFT)) && !pressedKeys.contains(KeyEvent.getKeyText(KeyEvent.VK_RIGHT))) {
 					// Move the character to the left
 					// scooter.animate(...)
-					scooter.setXPosition(scooter.getXPosition() - 3);
+					scooter.setXPosition(scooter.getXPosition() - HORIZONTAL_INCREMENT);
 					if (scooter.getXPosition() < 0)
 						scooter.setXPosition(0);
 				} else if (pressedKeys.contains(KeyEvent.getKeyText(KeyEvent.VK_RIGHT)) && !pressedKeys.contains(KeyEvent.getKeyText(KeyEvent.VK_LEFT))) {
 					// Move the character to the right
 					// scooter.animate(...)
-					scooter.setXPosition(scooter.getXPosition() + 3);
+					scooter.setXPosition(scooter.getXPosition() + HORIZONTAL_INCREMENT);
 					if (scooter.getXPosition() > this.getWidth())
 						scooter.setXPosition(this.getWidth());
 				} else {
@@ -296,6 +323,11 @@ public class LabOneGame extends Game {
 	@Override
 	public void draw(Graphics g){
 		super.draw(g);
+		AttributedString scoreString = new AttributedString((int)this.score + "");
+		scoreString.addAttribute(TextAttribute.WEIGHT, TextAttribute.WEIGHT_BOLD);
+		scoreString.addAttribute(TextAttribute.WIDTH, TextAttribute.WIDTH_EXTENDED);
+		scoreString.addAttribute(TextAttribute.SIZE, 18);
+		g.drawString(scoreString.getIterator(), 15, 25);
 	}
 
 	/**
@@ -309,12 +341,10 @@ public class LabOneGame extends Game {
 		/* Set up utility managers */
 		
 		// Sound manager
-		/*
-		soundMgr.loadSoundEffect("Jump", "smb_jump-small.wav");
-		soundMgr.loadSoundEffect("Coin", "Mario-coin-sound.wav");
-		soundMgr.loadMusic("Background Music", "01-super-mario-bros.wav");
-		soundMgr.playMusic("Background Music");
-		*/
+		soundMgr.loadSoundEffect("Fluid", "fluid.wav");
+		soundMgr.loadSoundEffect("Heart", "heart.wav");
+		//soundMgr.loadMusic("Background Music", "01-super-mario-bros.wav");
+		//soundMgr.playMusic("Background Music");
 
 		/* Add obstacles to the level */
 		
