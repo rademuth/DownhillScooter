@@ -56,11 +56,13 @@ public class LabOneGame extends Game {
 
 	private long lastJump;
 	private long lastCollision;
+	private long loseTime;
 	private double fluid;
 	private double health;
 	private double score;
 	
 	private boolean firstPass = true;
+	private boolean lost = false;
 		
 	/**
 	 * Constructor. See constructor in Game.java for details on the parameters given
@@ -70,6 +72,7 @@ public class LabOneGame extends Game {
 
 		this.lastJump = System.nanoTime();
 		this.lastCollision = System.nanoTime();
+		this.loseTime = -1;
 		this.fluid = MAX_FLUID;
 		this.health = MAX_HEALTH;
 		this.score = 0;
@@ -160,7 +163,8 @@ public class LabOneGame extends Game {
 		this.health -= HEALTH_INCREMENT;
 		if (this.health <= 0){
 			System.out.println("You're dead!");
-			System.exit(0);
+			//System.exit(0);
+			//exitGame();
 		}
 		this.healthBar.setScaleX(this.health / MAX_HEALTH);
 		this.lastCollision = System.nanoTime();
@@ -175,6 +179,20 @@ public class LabOneGame extends Game {
 		tween.animate(TweenableParam.ALPHA, 1, 0.5, INVINCIBILITY_TIME/8, 6*INVINCIBILITY_TIME/8);
 		tween.animate(TweenableParam.ALPHA, 0.5, 1, INVINCIBILITY_TIME/8, 7*INVINCIBILITY_TIME/8);
 		tweenJuggler.add(tween);
+	}
+	
+	public void exitGame() {
+		System.out.println("Exiting Game");
+		lost = true;
+		if(loseTime == -1){
+			System.out.println("Setting loseTime");
+			loseTime = System.nanoTime();
+		}
+		
+		if((System.nanoTime() - loseTime)/1000000 >= 3000){
+			System.out.println("Actually Exiting Game");
+			System.exit(0);
+		}
 	}
 	
 	public void pickupHealth() {
@@ -244,11 +262,11 @@ public class LabOneGame extends Game {
 	public void update(ArrayList<String> pressedKeys){
 		super.update(pressedKeys);		
 		
-		
 		if (!firstPass) {
 
 			if (this.health <= 0) {
-				this.stop();
+				//this.stop();
+				exitGame();
 			}
 			
 			this.score -= this.physicsContainer.getYVelocity();
@@ -355,12 +373,22 @@ public class LabOneGame extends Game {
 	 * */
 	@Override
 	public void draw(Graphics g){
-		super.draw(g);
 		AttributedString scoreString = new AttributedString((int)this.score + "");
 		scoreString.addAttribute(TextAttribute.WEIGHT, TextAttribute.WEIGHT_BOLD);
 		scoreString.addAttribute(TextAttribute.WIDTH, TextAttribute.WIDTH_EXTENDED);
 		scoreString.addAttribute(TextAttribute.SIZE, 18);
 		g.drawString(scoreString.getIterator(), 15, 25);
+		
+		if(lost){
+			//System.out.println("Printing YOU LOST");
+			AttributedString loseString = new AttributedString("YOU LOST");
+			loseString.addAttribute(TextAttribute.WEIGHT, TextAttribute.WEIGHT_BOLD);
+			loseString.addAttribute(TextAttribute.WIDTH, TextAttribute.WIDTH_EXTENDED);
+			loseString.addAttribute(TextAttribute.SIZE, 60);
+			//g.drawString(loseString.getIterator(), this.getWidth()/2, this.getHeight()/2);
+			g.drawString(loseString.getIterator(), 15, this.getHeight()/2);
+		}		
+		super.draw(g);
 	}
 
 	/**
@@ -392,7 +420,18 @@ public class LabOneGame extends Game {
 		
 		game.addObstacle(ObstacleType.FLUID, 200, 1500);
 		game.addObstacle(ObstacleType.HEART, 400, 1500);
-				
+		
+		game.addObstacle(ObstacleType.TRAFFIC_CONE, 225, 1700);
+		game.addObstacle(ObstacleType.POTHOLE, 275, 1700);
+		game.addObstacle(ObstacleType.TRAFFIC_CONE, 325, 1700);
+		
+		game.addObstacle(ObstacleType.POTHOLE, 100, 1800);
+		game.addObstacle(ObstacleType.TRAFFIC_CONE, 350, 1800);
+		
+		for (int i = 0; i < 8; i++) {
+			game.addObstacle(ObstacleType.TRAFFIC_CONE, 35*i, 2000 + 55*i);
+		}
+		
 		for (int i = 0; i< 1000; i++) {
 			game.addLine(GAME_WIDTH/2, 256*i);
 		}
