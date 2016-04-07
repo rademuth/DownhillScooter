@@ -162,7 +162,7 @@ public class LabOneGame extends Game {
 	public void subtractHealth() {
 		this.health -= HEALTH_INCREMENT;
 		if (this.health <= 0){
-			System.out.println("You're dead!");
+			//System.out.println("You're dead!");
 			//System.exit(0);
 			//exitGame();
 		}
@@ -182,15 +182,15 @@ public class LabOneGame extends Game {
 	}
 	
 	public void exitGame() {
-		System.out.println("Exiting Game");
+		//System.out.println("Exiting Game");
 		lost = true;
 		if(loseTime == -1){
-			System.out.println("Setting loseTime");
+			//System.out.println("Setting loseTime");
 			loseTime = System.nanoTime();
 		}
 		
 		if((System.nanoTime() - loseTime)/1000000 >= 3000){
-			System.out.println("Actually Exiting Game");
+			//System.out.println("Actually Exiting Game");
 			System.exit(0);
 		}
 	}
