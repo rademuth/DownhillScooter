@@ -124,7 +124,7 @@ public class LabOneGame extends Game {
 		this.physicsContainer.addChild(this.heartContainer);
 		
 		this.uiContainer.addChild(fluidBar);
-		this.uiContainer.addChild(fluidIcon);		
+		this.uiContainer.addChild(fluidIcon);
 		this.uiContainer.addChild(fluidFrame);
 		this.uiContainer.addChild(healthBar);
 		this.uiContainer.addChild(healthIcon);
@@ -207,6 +207,7 @@ public class LabOneGame extends Game {
 	
 	public void addObstacle(ObstacleType type, double xPos, double yPos) {
 		Sprite s;
+		int potholesNeeded;
 		int conesNeeded;
 		switch(type) {
 			case POTHOLE:
@@ -265,6 +266,33 @@ public class LabOneGame extends Game {
 			case ZAG_ZIG:
 				this.addObstacle(ObstacleType.ZAG, 0, yPos);
 				this.addObstacle(ObstacleType.ZIG, 0, yPos + 750);
+				break;
+			case FUNNEL:
+				conesNeeded = (int)Math.ceil((double)GAME_WIDTH / 35.0) - 5;
+				for (int i = 0; i < conesNeeded / 2; i++) {
+					this.addObstacle(ObstacleType.TRAFFIC_CONE, 35*i + 20, yPos + 50*i);
+					this.addObstacle(ObstacleType.TRAFFIC_CONE, GAME_WIDTH - (35*i + 25), yPos + 50*i);
+				}
+				break;
+			case SPLIT:
+				for (int i = 0; i < 10; i++) {
+					this.addObstacle(ObstacleType.TRAFFIC_CONE, GAME_WIDTH / 2, yPos + 50*i);
+				}
+				break;
+			case SPLIT_LEFT:
+				this.addObstacle(ObstacleType.SPLIT, 0, yPos);
+				potholesNeeded = (int)Math.ceil((double)GAME_WIDTH / 50.0);
+				for (int i = 0; i < potholesNeeded / 2; i++) {
+					this.addObstacle(ObstacleType.POTHOLE, 50*i + 20, yPos + 50*9);
+				}
+				break;
+			case SPLIT_RIGHT:
+				this.addObstacle(ObstacleType.SPLIT, 0, yPos);
+				potholesNeeded = (int)Math.ceil((double)GAME_WIDTH / 50.0);
+				for (int i = 0; i < potholesNeeded / 2; i++) {
+					this.addObstacle(ObstacleType.POTHOLE,  GAME_WIDTH - (50*i + 25), yPos + 50*9);
+					
+				}
 				break;
 			case CONSTRUCTION_ZONE:
 				this.addObstacle(ObstacleType.TRAFFIC_CONE, xPos, yPos);
@@ -472,7 +500,10 @@ public class LabOneGame extends Game {
 		game.addObstacle(ObstacleType.ZIG_ZAG, 0, 7000);
 		game.addObstacle(ObstacleType.ZAG_ZIG, 0, 9000);
 		game.addObstacle(ObstacleType.CONSTRUCTION_ZONE, 200, 11000);
-
+		game.addObstacle(ObstacleType.FUNNEL, 0, 12000);
+		game.addObstacle(ObstacleType.SPLIT, 0, 13000);		
+		game.addObstacle(ObstacleType.SPLIT_LEFT, 0, 14000);		
+		game.addObstacle(ObstacleType.SPLIT_RIGHT, 0, 15000);		
 		
 		for (int i = 0; i< 1000; i++) {
 			game.addLine(GAME_WIDTH/2, 256*i);

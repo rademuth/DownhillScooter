@@ -11,5 +11,9 @@ public enum ObstacleType {
 	ZAG,
 	ZIG_ZAG,
 	ZAG_ZIG,
+	FUNNEL,
+	SPLIT,
+	SPLIT_LEFT,
+	SPLIT_RIGHT,
 	CONSTRUCTION_ZONE
 }
