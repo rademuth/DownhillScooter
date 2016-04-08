@@ -150,7 +150,7 @@ public class LabOneGame extends Game {
 			this.fluid = 0;
 		if (this.physicsContainer.getYVelocity() > 0)
 			this.physicsContainer.setYVelocity(0);
-		this.fluidBar.setScaleX(this.fluid / MAX_FLUID);
+		this.fluidBar.setScaleX((this.fluid+0.01) / MAX_FLUID);
 	}
 	
 	public void pickupFluid() {
@@ -325,6 +325,7 @@ public class LabOneGame extends Game {
 									System.out.println("Collision");
 									this.subtractHealth();
 									iter.remove();
+									soundMgr.playSoundEffect("Cone");
 								}
 								break;
 							case DOG:
@@ -332,6 +333,7 @@ public class LabOneGame extends Game {
 									System.out.println("Collision");
 									this.subtractHealth();
 									iter.remove();
+									soundMgr.playSoundEffect("Dog");
 								}
 								break;
 							case FLUID:
@@ -435,6 +437,8 @@ public class LabOneGame extends Game {
 		// Sound manager
 		soundMgr.loadSoundEffect("Fluid", "fluid.wav");
 		soundMgr.loadSoundEffect("Heart", "heart.wav");
+		soundMgr.loadSoundEffect("Dog", "Dog Barking.wav");
+		soundMgr.loadSoundEffect("Cone", "Batman Punch.wav");
 		//soundMgr.loadMusic("Background Music", "01-super-mario-bros.wav");
 		//soundMgr.playMusic("Background Music");
 
