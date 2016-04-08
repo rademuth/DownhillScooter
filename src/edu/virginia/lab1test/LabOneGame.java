@@ -150,7 +150,7 @@ public class LabOneGame extends Game {
 			this.fluid = 0;
 		if (this.physicsContainer.getYVelocity() > 0)
 			this.physicsContainer.setYVelocity(0);
-		this.fluidBar.setScaleX(this.fluid / MAX_FLUID);
+		this.fluidBar.setScaleX((this.fluid+0.01) / MAX_FLUID);
 	}
 	
 	public void pickupFluid() {
