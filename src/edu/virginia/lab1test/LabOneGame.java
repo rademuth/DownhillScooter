@@ -207,6 +207,7 @@ public class LabOneGame extends Game {
 	
 	public void addObstacle(ObstacleType type, double xPos, double yPos) {
 		Sprite s;
+		int conesNeeded;
 		switch(type) {
 			case POTHOLE:
 				s = new Sprite("Pothole", "Pothole.png", type);
@@ -229,6 +230,8 @@ public class LabOneGame extends Game {
 				this.dogContainer.addChild(s);
 				this.addSprite(s);
 				break;
+			case CAR:
+				break;
 			case FLUID:
 				s = new Sprite("Fluid", "Fluid.png", type);
 				s.setPivotPoint(s.getUnscaledWidth()/2, s.getUnscaledHeight()/2);
@@ -243,9 +246,35 @@ public class LabOneGame extends Game {
 				this.heartContainer.addChild(s);
 				this.addSprite(s);
 				break;
+			case ZIG:
+				conesNeeded = (int)Math.ceil((double)GAME_WIDTH / 35.0) - 5;
+				for (int i = 0; i < conesNeeded; i++) {
+					this.addObstacle(ObstacleType.TRAFFIC_CONE, 35*i + 20, yPos + 50*i);
+				}
+				break;
+			case ZAG:
+				conesNeeded = (int)Math.ceil((double)GAME_WIDTH / 35.0) - 5;
+				for (int i = 0; i < conesNeeded; i++) {
+					this.addObstacle(ObstacleType.TRAFFIC_CONE, GAME_WIDTH - (35*i + 25), yPos + 50*i);
+				}
+				break;
+			case ZIG_ZAG:
+				this.addObstacle(ObstacleType.ZIG, 0, yPos);
+				this.addObstacle(ObstacleType.ZAG, 0, yPos + 750);
+				break;
+			case ZAG_ZIG:
+				this.addObstacle(ObstacleType.ZAG, 0, yPos);
+				this.addObstacle(ObstacleType.ZIG, 0, yPos + 750);
+				break;
+			case CONSTRUCTION_ZONE:
+				this.addObstacle(ObstacleType.TRAFFIC_CONE, xPos, yPos);
+				this.addObstacle(ObstacleType.POTHOLE, xPos + 50, yPos);
+				this.addObstacle(ObstacleType.POTHOLE, xPos + 100, yPos);
+				this.addObstacle(ObstacleType.TRAFFIC_CONE, xPos + 150, yPos);				
+				break;
 		}
 	}
-	
+		
 	public void addLine(double xPos, double yPos) {
 		Sprite s = new Sprite("Line", "Line.png");
 		s.setPivotPoint(s.getUnscaledWidth()/2, s.getUnscaledHeight()/2);
@@ -317,6 +346,8 @@ public class LabOneGame extends Game {
 								pickupHealth();
 								iter.remove();
 								break;
+						default:
+							break;
 						}
 					}
 				}
@@ -431,6 +462,13 @@ public class LabOneGame extends Game {
 		for (int i = 0; i < 8; i++) {
 			game.addObstacle(ObstacleType.TRAFFIC_CONE, 35*i, 2000 + 55*i);
 		}
+		
+		game.addObstacle(ObstacleType.ZIG, 0, 5000);
+		game.addObstacle(ObstacleType.ZAG, 0, 6000);
+		game.addObstacle(ObstacleType.ZIG_ZAG, 0, 7000);
+		game.addObstacle(ObstacleType.ZAG_ZIG, 0, 9000);
+		game.addObstacle(ObstacleType.CONSTRUCTION_ZONE, 200, 11000);
+
 		
 		for (int i = 0; i< 1000; i++) {
 			game.addLine(GAME_WIDTH/2, 256*i);

@@ -4,6 +4,12 @@ public enum ObstacleType {
 	POTHOLE,
 	TRAFFIC_CONE,
 	DOG,
+	CAR,
 	FLUID,
-	HEART
+	HEART,
+	ZIG,
+	ZAG,
+	ZIG_ZAG,
+	ZAG_ZIG,
+	CONSTRUCTION_ZONE
 }
