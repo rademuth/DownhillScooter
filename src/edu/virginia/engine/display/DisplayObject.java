@@ -228,6 +228,7 @@ public class DisplayObject extends EventDispatcher {
 		BufferedImage image = null;
 		try {
 			String file = ("resources" + File.separator + imageName);
+			System.out.println(file);
 			image = ImageIO.read(new File(file));
 		} catch (IOException e) {
 			System.out

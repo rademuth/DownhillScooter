@@ -3,9 +3,16 @@ package edu.virginia.lab1test;
 import java.awt.Graphics;
 import java.awt.event.KeyEvent;
 import java.awt.font.TextAttribute;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.text.AttributedString;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Scanner;
+
+import javax.imageio.ImageIO;
 
 import edu.virginia.engine.display.DisplayObjectContainer;
 import edu.virginia.engine.display.Game;
@@ -63,13 +70,15 @@ public class LabOneGame extends Game {
 	
 	private boolean firstPass = true;
 	private boolean lost = false;
-		
+	
+	private final static String[] templates = {};
+			
 	/**
 	 * Constructor. See constructor in Game.java for details on the parameters given
 	 * */
 	public LabOneGame() {
 		super("Lab One Test Game", GAME_WIDTH, GAME_HEIGHT);
-
+		
 		this.lastJump = System.nanoTime();
 		this.lastCollision = System.nanoTime();
 		this.loseTime = -1;
@@ -133,6 +142,28 @@ public class LabOneGame extends Game {
 		this.addChild(this.physicsContainer);
 		this.addChild(this.scooter);
 		this.addChild(this.uiContainer);
+		
+	}
+	
+	public void addTemplate(String fileName, double yOffset) {
+		String file = ("resources" + File.separator + fileName);
+		System.out.println(file);
+		File inputFile = new File(file);
+		System.out.println(inputFile.toString());
+		
+		Scanner scan = null; 
+		try {
+			scan = new Scanner(inputFile);
+		} catch (FileNotFoundException e) {
+			System.out.println("Could not find file");
+		}
+		
+		while (scan.hasNextLine()) {
+			// ObstacleType,xPos,yPos
+			String[] arr = scan.nextLine().split(",");
+			ObstacleType type = ObstacleType.valueOf(arr[0]);
+			this.addObstacle(type, Double.parseDouble(arr[1]), yOffset+Double.parseDouble(arr[2]));
+		}
 	}
 	
 	public boolean canJump() {
@@ -345,14 +376,12 @@ public class LabOneGame extends Game {
 								if (!this.isInAir() && !this.isInvincible()) {
 									System.out.println("Collision");
 									this.subtractHealth();
-									iter.remove();
 								}
 								break;
 							case TRAFFIC_CONE:
 								if (!this.isInvincible()) {
 									System.out.println("Collision");
 									this.subtractHealth();
-									iter.remove();
 									soundMgr.playSoundEffect("Cone");
 								}
 								break;
@@ -360,7 +389,6 @@ public class LabOneGame extends Game {
 								if (!this.isInvincible()) {
 									System.out.println("Collision");
 									this.subtractHealth();
-									iter.remove();
 									soundMgr.playSoundEffect("Dog");
 								}
 								break;
@@ -368,17 +396,19 @@ public class LabOneGame extends Game {
 								System.out.println("Fluid");
 								s.setVisible(false);
 								this.pickupFluid();
-								iter.remove();
 								break;
 							case HEART:
 								System.out.println("Heart");
 								s.setVisible(false);
 								pickupHealth();
-								iter.remove();
 								break;
 						default:
 							break;
 						}
+					}
+				} else {
+					if (s.getLocalToGlobalCoors(0, s.getUnscaledHeight()).getY() < 0) {
+						iter.remove();
 					}
 				}
 			}
