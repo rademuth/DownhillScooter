@@ -501,8 +501,8 @@ public class LabOneGame extends Game {
 		//soundMgr.playMusic("Background Music");
 
 		/* Add obstacles to the level */
-		
-		for (int i = 0; i < 10; i++) {
+		/*
+		for (int i = 0; i < 11; i++) {
 			game.addObstacle(ObstacleType.POTHOLE, 50*i, 500);
 		}
 		for (int i = 0; i < 6; i++) {
@@ -534,12 +534,14 @@ public class LabOneGame extends Game {
 		game.addObstacle(ObstacleType.SPLIT, 0, 13000);		
 		game.addObstacle(ObstacleType.SPLIT_LEFT, 0, 14000);		
 		game.addObstacle(ObstacleType.SPLIT_RIGHT, 0, 15000);		
-		
+		*/
 		for (int i = 0; i< 1000; i++) {
 			game.addLine(GAME_WIDTH/2, 256*i);
 		}
-		game.addTemplate("template1.csv", 17000);
-		game.addTemplate("template2.csv", 23000);
+		
+		game.addTemplate("tutorialtemplate.csv", 0);
+		game.addTemplate("template1.csv", 6000);
+		game.addTemplate("template2.csv", 12000);
 		/* Start the game */
 		game.start();
 		
