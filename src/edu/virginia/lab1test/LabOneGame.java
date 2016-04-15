@@ -35,8 +35,9 @@ public class LabOneGame extends Game implements IEventListener {
 	public final static int GAME_WIDTH = 500;
 	public final static int GAME_HEIGHT = 725;
 	
-	private final static double INITIAL_VELOCITY = -125;
+	private final static double INITIAL_VELOCITY = -100;
 	private final static double VELOCITY_INCREMENT = 10;
+	private final static double MIN_SPEED = 0;
 	private final static double HORIZONTAL_INCREMENT = 5;
 	private final static long JUMP_TIME = 750;
 	private final static long INVINCIBILITY_TIME = 1000;
@@ -72,7 +73,7 @@ public class LabOneGame extends Game implements IEventListener {
 	private boolean lost = false;
 	
 	private Random rand;
-	private final static String[] templates = {"testTemplate.txt"};
+	private final static String[] templates = {"template1.txt", "template2.txt"};
 	private final static double TEMPLATE_LENGTH = 5000;
 	private final static double FIRST_TEMPLATE_OFFSET = 2000;
 	private int numTemplatesAdded;
@@ -152,7 +153,7 @@ public class LabOneGame extends Game implements IEventListener {
 	}
 	
 	public void addTemplate(String fileName, double yOffset) {
-		String file = ("resources" + File.separator + fileName);
+		String file = ("resources" + File.separator + "templates" + File.separator + fileName);
 		File inputFile = new File(file);
 		
 		Scanner scan = null; 
@@ -166,7 +167,6 @@ public class LabOneGame extends Game implements IEventListener {
 			// ObstacleType,xPos,yPos
 			String[] arr = scan.nextLine().split(",");
 			ObstacleType type = ObstacleType.valueOf(arr[0]);
-			System.out.println("Adding obstacle from template...");
 			this.addObstacle(type, Double.parseDouble(arr[1]), yOffset+Double.parseDouble(arr[2]));
 		}
 		
@@ -195,8 +195,8 @@ public class LabOneGame extends Game implements IEventListener {
 		this.physicsContainer.addYVelocity(VELOCITY_INCREMENT);
 		if (this.fluid < 0)
 			this.fluid = 0;
-		if (this.physicsContainer.getYVelocity() > 0)
-			this.physicsContainer.setYVelocity(0);
+		if (this.physicsContainer.getYVelocity() > MIN_SPEED)
+			this.physicsContainer.setYVelocity(MIN_SPEED);
 		this.fluidBar.setScaleX((this.fluid+0.01) / MAX_FLUID);
 	}
 	
@@ -277,7 +277,6 @@ public class LabOneGame extends Game implements IEventListener {
 				s.setPosition(xPos, yPos);
 				this.dogContainer.addChild(s);
 				this.addSprite(s);
-				System.out.println("Finished adding dog...");
 				break;
 			case CAR:
 				break;

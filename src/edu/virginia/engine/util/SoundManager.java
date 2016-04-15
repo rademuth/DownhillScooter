@@ -32,7 +32,7 @@ public class SoundManager {
 	}
 	
 	public Clip getClipFromFile(String filename) {
-		String filepath = ("resources" + File.separator + filename);
+		String filepath = ("resources" + File.separator + "sounds" + File.separator + filename);
 		Clip clip = null;
 		try {
             File file = new File(filepath);

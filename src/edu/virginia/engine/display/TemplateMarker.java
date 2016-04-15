@@ -21,7 +21,6 @@ public class TemplateMarker extends DisplayObject {
 	public void update(ArrayList<String> pressedKeys) {
 		if (!templateHandled && this.getLocalToGlobalCoors(0, 0).getY() < LabOneGame.GAME_HEIGHT) {
 			//this.game.handleTemplateMarker();
-			System.out.println("A template marker is sending an event...");
 			Event e = new Event("ADD_TEMPLATE_EVENT", this);
 			this.dispatchEvent(e);
 			this.templateHandled = true;
