@@ -73,8 +73,8 @@ public class LabOneGame extends Game implements IEventListener {
 	private boolean lost = false;
 	
 	private Random rand;
-	private final static String[] templates = {"template1.txt", "template2.txt"};
-	private final static double TEMPLATE_LENGTH = 5000;
+	private final static String[] templates = {"template1.txt", "template2.txt", "template3.txt", "template4.txt", "template5.txt"};
+	private final static double TEMPLATE_LENGTH = 6000;
 	private final static double FIRST_TEMPLATE_OFFSET = 2000;
 	private int numTemplatesAdded;
 
