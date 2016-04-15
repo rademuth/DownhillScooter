@@ -538,7 +538,8 @@ public class LabOneGame extends Game {
 		for (int i = 0; i< 1000; i++) {
 			game.addLine(GAME_WIDTH/2, 256*i);
 		}
-		
+		game.addTemplate("template1.csv", 17000);
+		game.addTemplate("template2.csv", 23000);
 		/* Start the game */
 		game.start();
 		
