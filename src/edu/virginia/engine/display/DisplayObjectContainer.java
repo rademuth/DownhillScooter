@@ -3,20 +3,22 @@ package edu.virginia.engine.display;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class DisplayObjectContainer extends DisplayObject {
 
-	private List<DisplayObject> children;
+	private CopyOnWriteArrayList<DisplayObject> children;
 	
 	public DisplayObjectContainer(String id) {
 		super(id);
-		this.children = new ArrayList<DisplayObject>();
+		this.children = new CopyOnWriteArrayList<DisplayObject>();
 	}
 
 	public DisplayObjectContainer(String id, String imageFileName) {
 		super(id, imageFileName);
-		this.children = new ArrayList<DisplayObject>();
+		this.children = new CopyOnWriteArrayList<DisplayObject>();
 	}
 	
 	/* Override the update() and draw() methods */
@@ -26,9 +28,16 @@ public class DisplayObjectContainer extends DisplayObject {
 		super.update(pressedKeys);
 		
 		// Call the update() method on each child
+		Iterator<DisplayObject> iter = this.children.iterator();
+		while (iter.hasNext()) {
+			DisplayObject child = iter.next();
+			child.update(pressedKeys);
+		}
+		/*
 		for (DisplayObject child : children) {
 			child.update(pressedKeys);
 		}
+		*/
 	}
 	
 	@Override
@@ -39,7 +48,9 @@ public class DisplayObjectContainer extends DisplayObject {
 		if (isVisible()) {
 			Graphics2D g2d = (Graphics2D) g;
 			this.applyTransformations(g2d);
-			for (DisplayObject child : children) {
+			Iterator<DisplayObject> iter = this.children.iterator();
+			while (iter.hasNext()) {
+				DisplayObject child = iter.next();
 				if (child != null) {
 					child.draw(g);
 				}
@@ -89,7 +100,9 @@ public class DisplayObjectContainer extends DisplayObject {
 	}
 	
 	public DisplayObject getChild(String id) {
-		for (DisplayObject child : children) {
+		Iterator<DisplayObject> iter = this.children.iterator();
+		while (iter.hasNext()) {
+			DisplayObject child = iter.next();
 			if (child.getId().equals(id)) {
 				return child;
 			}

@@ -12,6 +12,7 @@ public enum ObstacleType {
 	ZIG_ZAG,
 	ZAG_ZIG,
 	FUNNEL,
+	ROW,
 	SPLIT,
 	SPLIT_LEFT,
 	SPLIT_RIGHT,

@@ -3,16 +3,13 @@ package edu.virginia.lab1test;
 import java.awt.Graphics;
 import java.awt.event.KeyEvent;
 import java.awt.font.TextAttribute;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.text.AttributedString;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Random;
 import java.util.Scanner;
-
-import javax.imageio.ImageIO;
 
 import edu.virginia.engine.display.DisplayObjectContainer;
 import edu.virginia.engine.display.Game;
@@ -20,6 +17,9 @@ import edu.virginia.engine.display.MovingSprite;
 import edu.virginia.engine.display.ObstacleType;
 import edu.virginia.engine.display.Sprite;
 import edu.virginia.engine.display.PhysicsSprite;
+import edu.virginia.engine.display.TemplateMarker;
+import edu.virginia.engine.events.Event;
+import edu.virginia.engine.events.IEventListener;
 import edu.virginia.engine.util.Tween;
 import edu.virginia.engine.util.TweenTransition;
 import edu.virginia.engine.util.TweenTransitionType;
@@ -29,11 +29,11 @@ import edu.virginia.engine.util.TweenableParam;
  * Example game that utilizes our engine. We can create a simple prototype game with just a couple lines of code
  * although, for now, it won't be a very fun game :)
  * */
-public class LabOneGame extends Game {
+public class LabOneGame extends Game implements IEventListener {
 
 	private final static String[] dogImages = {"Dog_walk_1.png", "Dog_walk_2.png", "Dog_walk_3.png", "Dog_walk_4.png"};
-	private final static int GAME_WIDTH = 500;
-	private final static int GAME_HEIGHT = 725;
+	public final static int GAME_WIDTH = 500;
+	public final static int GAME_HEIGHT = 725;
 	
 	private final static double INITIAL_VELOCITY = -125;
 	private final static double VELOCITY_INCREMENT = 10;
@@ -71,20 +71,26 @@ public class LabOneGame extends Game {
 	private boolean firstPass = true;
 	private boolean lost = false;
 	
-	private final static String[] templates = {};
-			
+	private Random rand;
+	private final static String[] templates = {"testTemplate.txt"};
+	private final static double TEMPLATE_LENGTH = 5000;
+	private final static double FIRST_TEMPLATE_OFFSET = 2000;
+	private int numTemplatesAdded;
+
 	/**
 	 * Constructor. See constructor in Game.java for details on the parameters given
 	 * */
 	public LabOneGame() {
 		super("Lab One Test Game", GAME_WIDTH, GAME_HEIGHT);
 		
+		this.rand = new Random();
 		this.lastJump = System.nanoTime();
 		this.lastCollision = System.nanoTime();
 		this.loseTime = -1;
 		this.fluid = MAX_FLUID;
 		this.health = MAX_HEALTH;
 		this.score = 0;
+		this.numTemplatesAdded = 0;
 		
 		this.fluidBar = new Sprite("Fluid", "Fluid_bar.png");
 		this.fluidIcon = new Sprite("Fluid Icon", "Fluid_icon.png");
@@ -147,9 +153,7 @@ public class LabOneGame extends Game {
 	
 	public void addTemplate(String fileName, double yOffset) {
 		String file = ("resources" + File.separator + fileName);
-		System.out.println(file);
 		File inputFile = new File(file);
-		System.out.println(inputFile.toString());
 		
 		Scanner scan = null; 
 		try {
@@ -162,8 +166,20 @@ public class LabOneGame extends Game {
 			// ObstacleType,xPos,yPos
 			String[] arr = scan.nextLine().split(",");
 			ObstacleType type = ObstacleType.valueOf(arr[0]);
+			System.out.println("Adding obstacle from template...");
 			this.addObstacle(type, Double.parseDouble(arr[1]), yOffset+Double.parseDouble(arr[2]));
 		}
+		
+		this.numTemplatesAdded++;
+		
+		TemplateMarker tm = new TemplateMarker("Template Marker", this);
+		tm.setYPosition(yOffset);
+		this.physicsContainer.addChild(tm);
+	}
+	
+	public void handleEvent(Event event) {
+		int index = rand.nextInt(templates.length);
+		this.addTemplate(templates[index], FIRST_TEMPLATE_OFFSET + this.numTemplatesAdded*TEMPLATE_LENGTH);
 	}
 	
 	public boolean canJump() {
@@ -261,6 +277,7 @@ public class LabOneGame extends Game {
 				s.setPosition(xPos, yPos);
 				this.dogContainer.addChild(s);
 				this.addSprite(s);
+				System.out.println("Finished adding dog...");
 				break;
 			case CAR:
 				break;
@@ -303,6 +320,12 @@ public class LabOneGame extends Game {
 				for (int i = 0; i < conesNeeded / 2; i++) {
 					this.addObstacle(ObstacleType.TRAFFIC_CONE, 35*i + 20, yPos + 50*i);
 					this.addObstacle(ObstacleType.TRAFFIC_CONE, GAME_WIDTH - (35*i + 25), yPos + 50*i);
+				}
+				break;
+			case ROW:
+				potholesNeeded = (int)Math.ceil((double)GAME_WIDTH / 50.0) + 1;
+				for (int i = 0; i < potholesNeeded; i++) {
+					this.addObstacle(ObstacleType.POTHOLE, 50*i, yPos);
 				}
 				break;
 			case SPLIT:
@@ -376,6 +399,7 @@ public class LabOneGame extends Game {
 								if (!this.isInAir() && !this.isInvincible()) {
 									System.out.println("Collision");
 									this.subtractHealth();
+									iter.remove();
 								}
 								break;
 							case TRAFFIC_CONE:
@@ -383,6 +407,7 @@ public class LabOneGame extends Game {
 									System.out.println("Collision");
 									this.subtractHealth();
 									soundMgr.playSoundEffect("Cone");
+									iter.remove();
 								}
 								break;
 							case DOG:
@@ -390,17 +415,20 @@ public class LabOneGame extends Game {
 									System.out.println("Collision");
 									this.subtractHealth();
 									soundMgr.playSoundEffect("Dog");
+									iter.remove();
 								}
 								break;
 							case FLUID:
 								System.out.println("Fluid");
 								s.setVisible(false);
 								this.pickupFluid();
+								iter.remove();
 								break;
 							case HEART:
 								System.out.println("Heart");
 								s.setVisible(false);
 								pickupHealth();
+								iter.remove();
 								break;
 						default:
 							break;
@@ -502,45 +530,21 @@ public class LabOneGame extends Game {
 
 		/* Add obstacles to the level */
 		
-		for (int i = 0; i < 10; i++) {
-			game.addObstacle(ObstacleType.POTHOLE, 50*i, 500);
-		}
-		for (int i = 0; i < 6; i++) {
-			game.addObstacle(ObstacleType.TRAFFIC_CONE, 35*i, 800 + 50*i);
-			game.addObstacle(ObstacleType.TRAFFIC_CONE, GAME_WIDTH - 35*i, 800 + 50*i);
-		}
-		game.addObstacle(ObstacleType.DOG, GAME_WIDTH/2, 1250);
-		
-		game.addObstacle(ObstacleType.FLUID, 200, 1500);
-		game.addObstacle(ObstacleType.HEART, 400, 1500);
-		
-		game.addObstacle(ObstacleType.TRAFFIC_CONE, 225, 1700);
-		game.addObstacle(ObstacleType.POTHOLE, 275, 1700);
-		game.addObstacle(ObstacleType.TRAFFIC_CONE, 325, 1700);
-		
-		game.addObstacle(ObstacleType.POTHOLE, 100, 1800);
-		game.addObstacle(ObstacleType.TRAFFIC_CONE, 350, 1800);
-		
-		for (int i = 0; i < 8; i++) {
-			game.addObstacle(ObstacleType.TRAFFIC_CONE, 35*i, 2000 + 55*i);
-		}
-		
-		game.addObstacle(ObstacleType.ZIG, 0, 5000);
-		game.addObstacle(ObstacleType.ZAG, 0, 6000);
-		game.addObstacle(ObstacleType.ZIG_ZAG, 0, 7000);
-		game.addObstacle(ObstacleType.ZAG_ZIG, 0, 9000);
-		game.addObstacle(ObstacleType.CONSTRUCTION_ZONE, 200, 11000);
-		game.addObstacle(ObstacleType.FUNNEL, 0, 12000);
-		game.addObstacle(ObstacleType.SPLIT, 0, 13000);		
-		game.addObstacle(ObstacleType.SPLIT_LEFT, 0, 14000);		
-		game.addObstacle(ObstacleType.SPLIT_RIGHT, 0, 15000);		
-		
 		for (int i = 0; i< 1000; i++) {
 			game.addLine(GAME_WIDTH/2, 256*i);
 		}
 		
+		// Tutorial Obstacles
+		game.addObstacle(ObstacleType.ROW, 0, 1000);
+		game.addObstacle(ObstacleType.FUNNEL, 0, 1250);
+		game.addObstacle(ObstacleType.DOG, GAME_WIDTH/2, 1750);
+		
+		// Load the first template
+		game.handleEvent(null);
+				
 		/* Start the game */
 		game.start();
 		
 	}
+
 }
