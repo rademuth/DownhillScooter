@@ -528,7 +528,7 @@ public class LabOneGame extends Game implements IEventListener {
 		//soundMgr.playMusic("Background Music");
 
 		/* Add obstacles to the level */
-		
+
 		for (int i = 0; i< 1000; i++) {
 			game.addLine(GAME_WIDTH/2, 256*i);
 		}
@@ -540,7 +540,7 @@ public class LabOneGame extends Game implements IEventListener {
 		
 		// Load the first template
 		game.handleEvent(null);
-				
+
 		/* Start the game */
 		game.start();
 		
