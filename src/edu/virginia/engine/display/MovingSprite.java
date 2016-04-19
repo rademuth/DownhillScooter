@@ -8,7 +8,7 @@ import edu.virginia.engine.util.Vector;
 public class MovingSprite extends AnimatedSprite {
 	
 	private final static double SPEED = 2;
-	private final static double THRESHOLD = 0.99;
+	private final static double THRESHOLD = 0.995;
 	
 	private Random rand;
 	private boolean movingRight;
@@ -45,24 +45,10 @@ public class MovingSprite extends AnimatedSprite {
 				this.setXPosition(this.getXPosition() - SPEED);
 				movingRight = false;
 				this.setScaleX(-1);
-				/*
-				if (this.getXPosition() < this.min) {
-					this.setXPosition(this.min);
-					movingRight = true;
-					this.setScaleX(-this.getScaleX());
-				}
-				*/
 			} else {
 				this.setXPosition(this.getXPosition() + SPEED);
 				movingRight = true;
 				this.setScaleX(1);
-				/*
-				if (this.getXPosition() > this.max) {
-					this.setXPosition(this.max);
-					movingRight = false;
-					this.setScaleX(-this.getScaleX());
-				}
-				*/
 			}
 		} else {
 			// Continue in the same direction

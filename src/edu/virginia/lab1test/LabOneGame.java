@@ -37,7 +37,7 @@ public class LabOneGame extends Game implements IEventListener {
 	
 	private final static double INITIAL_VELOCITY = -100;
 	private final static double VELOCITY_INCREMENT = 10;
-	private final static double MIN_SPEED = 0;
+	private final static double MIN_SPEED = -100;
 	private final static double HORIZONTAL_INCREMENT = 5;
 	private final static long JUMP_TIME = 750;
 	private final static long INVINCIBILITY_TIME = 1000;
@@ -73,7 +73,7 @@ public class LabOneGame extends Game implements IEventListener {
 	private boolean lost = false;
 	
 	private Random rand;
-	private final static String[] templates = {"template1.txt", "template2.txt", "template3.txt", "template4.txt", "template5.txt"};
+	private final static String[] templates = {"template1.txt", "template2.txt", "template3.txt", "template4.txt", "template5.txt", "template6.txt"};
 	private final static double TEMPLATE_LENGTH = 6000;
 	private final static double FIRST_TEMPLATE_OFFSET = 2000;
 	private int numTemplatesAdded;
@@ -175,6 +175,8 @@ public class LabOneGame extends Game implements IEventListener {
 		TemplateMarker tm = new TemplateMarker("Template Marker", this);
 		tm.setYPosition(yOffset);
 		this.physicsContainer.addChild(tm);
+		
+		System.out.println("Loaded " + fileName);
 	}
 	
 	public void handleEvent(Event event) {
@@ -210,6 +212,7 @@ public class LabOneGame extends Game implements IEventListener {
 		this.health -= HEALTH_INCREMENT;
 		if (this.health <= 0){
 			//System.out.println("You're dead!");
+			System.out.println(this.score);
 			//System.exit(0);
 			//exitGame();
 		}
@@ -351,7 +354,8 @@ public class LabOneGame extends Game implements IEventListener {
 				this.addObstacle(ObstacleType.TRAFFIC_CONE, xPos, yPos);
 				this.addObstacle(ObstacleType.POTHOLE, xPos + 50, yPos);
 				this.addObstacle(ObstacleType.POTHOLE, xPos + 100, yPos);
-				this.addObstacle(ObstacleType.TRAFFIC_CONE, xPos + 150, yPos);				
+				this.addObstacle(ObstacleType.POTHOLE, xPos + 150, yPos);
+				this.addObstacle(ObstacleType.TRAFFIC_CONE, xPos + 200, yPos);				
 				break;
 		}
 	}
@@ -396,14 +400,14 @@ public class LabOneGame extends Game implements IEventListener {
 						switch (s.type) {
 							case POTHOLE:
 								if (!this.isInAir() && !this.isInvincible()) {
-									System.out.println("Collision");
+									//System.out.println("Collision");
 									this.subtractHealth();
 									iter.remove();
 								}
 								break;
 							case TRAFFIC_CONE:
 								if (!this.isInvincible()) {
-									System.out.println("Collision");
+									//System.out.println("Collision");
 									this.subtractHealth();
 									soundMgr.playSoundEffect("Cone");
 									iter.remove();
@@ -411,20 +415,20 @@ public class LabOneGame extends Game implements IEventListener {
 								break;
 							case DOG:
 								if (!this.isInvincible()) {
-									System.out.println("Collision");
+									//System.out.println("Collision");
 									this.subtractHealth();
 									soundMgr.playSoundEffect("Dog");
 									iter.remove();
 								}
 								break;
 							case FLUID:
-								System.out.println("Fluid");
+								//System.out.println("Fluid");
 								s.setVisible(false);
 								this.pickupFluid();
 								iter.remove();
 								break;
 							case HEART:
-								System.out.println("Heart");
+								//System.out.println("Heart");
 								s.setVisible(false);
 								pickupHealth();
 								iter.remove();
@@ -446,17 +450,23 @@ public class LabOneGame extends Game implements IEventListener {
 					// Move the character to the left
 					// scooter.animate(...)
 					scooter.setXPosition(scooter.getXPosition() - HORIZONTAL_INCREMENT);
-					if (scooter.getXPosition() < 0)
+					scooter.setRotation(2.5);
+					if (scooter.getXPosition() < 0) {
 						scooter.setXPosition(0);
+						scooter.setRotation(0);
+					}
 				} else if (pressedKeys.contains(KeyEvent.getKeyText(KeyEvent.VK_RIGHT)) && !pressedKeys.contains(KeyEvent.getKeyText(KeyEvent.VK_LEFT))) {
 					// Move the character to the right
 					// scooter.animate(...)
 					scooter.setXPosition(scooter.getXPosition() + HORIZONTAL_INCREMENT);
-					if (scooter.getXPosition() > this.getWidth())
+					scooter.setRotation(-2.5);
+					if (scooter.getXPosition() > this.getWidth()) {
 						scooter.setXPosition(this.getWidth());
+						scooter.setRotation(0);
+					}
 				} else {
 					// No horizontal movement
-					
+					scooter.setRotation(0);
 				}
 				
 				// Make the character jump
@@ -470,6 +480,7 @@ public class LabOneGame extends Game implements IEventListener {
 					tween.animate(TweenableParam.SCALE_Y, 1.25, 1, JUMP_TIME/2, JUMP_TIME/2);
 					tweenJuggler.add(tween);
 				}
+				
 			}	
 			
 			if (physicsContainer != null) {
@@ -477,6 +488,12 @@ public class LabOneGame extends Game implements IEventListener {
 				if (pressedKeys.contains(KeyEvent.getKeyText(KeyEvent.VK_SPACE)) && this.fluid > 0) {
 					this.subtractFluid();
 				}
+				
+				// Speed up the character
+				if (pressedKeys.contains(KeyEvent.getKeyText(KeyEvent.VK_DOWN))) {
+					this.physicsContainer.addYVelocity(-VELOCITY_INCREMENT/4);
+				}
+				
 			}
 			
 		} else {
