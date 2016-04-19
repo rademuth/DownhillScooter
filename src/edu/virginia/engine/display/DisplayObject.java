@@ -366,4 +366,8 @@ public class DisplayObject extends EventDispatcher {
 		return this.getHitbox().intersects(d.getHitbox());
 	}
 	
+	public boolean collidesWith(Rectangle r) {
+		return this.getHitbox().intersects(r);
+	}
+	
 }

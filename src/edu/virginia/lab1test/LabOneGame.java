@@ -1,6 +1,7 @@
 package edu.virginia.lab1test;
 
 import java.awt.Graphics;
+import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
 import java.awt.font.TextAttribute;
 import java.io.File;
@@ -11,6 +12,7 @@ import java.util.Iterator;
 import java.util.Random;
 import java.util.Scanner;
 
+import edu.virginia.engine.display.DisplayObject;
 import edu.virginia.engine.display.DisplayObjectContainer;
 import edu.virginia.engine.display.Game;
 import edu.virginia.engine.display.MovingSprite;
@@ -182,6 +184,33 @@ public class LabOneGame extends Game implements IEventListener {
 	public void handleEvent(Event event) {
 		int index = rand.nextInt(templates.length);
 		this.addTemplate(templates[index], FIRST_TEMPLATE_OFFSET + this.numTemplatesAdded*TEMPLATE_LENGTH);
+		double randNum = Math.random();
+		Random randomPos = new Random();
+		Sprite heart = new Sprite("Heart", "Heart.png", ObstacleType.HEART);
+		Sprite fluid = new Sprite("Fluid", "Fluid.png", ObstacleType.FLUID);
+		int tempX = (int) randomPos.nextInt(this.getWidth());
+		int tempY = (int) (FIRST_TEMPLATE_OFFSET + this.numTemplatesAdded*TEMPLATE_LENGTH + randomPos.nextInt((int)TEMPLATE_LENGTH));
+		Rectangle tempBox = new Rectangle(tempX, tempY, heart.getUnscaledWidth(), heart.getUnscaledHeight());
+		boolean collides = true;
+		while(collides){
+			collides = false;
+			for(DisplayObject d : this.getObstacles()){
+				if(d.collidesWith(tempBox)){
+					collides = true;
+					tempX = (int) randomPos.nextInt(this.getWidth());
+					tempY = (int) (FIRST_TEMPLATE_OFFSET + this.numTemplatesAdded*TEMPLATE_LENGTH + randomPos.nextInt((int)TEMPLATE_LENGTH));
+					tempBox.setLocation(tempX, tempY);
+					break;
+				}
+			}
+			collides = false;
+		}
+		if(randNum < 0.5){
+			this.addObstacle(ObstacleType.HEART, tempX, tempY);
+		}
+		else{
+			this.addObstacle(ObstacleType.FLUID, tempX, tempY);
+		}
 	}
 	
 	public boolean canJump() {
