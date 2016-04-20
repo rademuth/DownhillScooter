@@ -79,6 +79,9 @@ public class LabOneGame extends Game implements IEventListener {
 	private final static double TEMPLATE_LENGTH = 6000;
 	private final static double FIRST_TEMPLATE_OFFSET = 2000;
 	private int numTemplatesAdded;
+	
+	private double fluidThreshold;
+	private double heartThreshold;
 
 	/**
 	 * Constructor. See constructor in Game.java for details on the parameters given
@@ -94,6 +97,8 @@ public class LabOneGame extends Game implements IEventListener {
 		this.health = MAX_HEALTH;
 		this.score = 0;
 		this.numTemplatesAdded = 0;
+		this.fluidThreshold = 0.5;
+		this.heartThreshold = 0.5;
 		
 		this.fluidBar = new Sprite("Fluid", "Fluid_bar.png");
 		this.fluidIcon = new Sprite("Fluid Icon", "Fluid_icon.png");
@@ -171,9 +176,7 @@ public class LabOneGame extends Game implements IEventListener {
 			ObstacleType type = ObstacleType.valueOf(arr[0]);
 			this.addObstacle(type, Double.parseDouble(arr[1]), yOffset+Double.parseDouble(arr[2]));
 		}
-		
-		this.numTemplatesAdded++;
-		
+				
 		TemplateMarker tm = new TemplateMarker("Template Marker", this);
 		tm.setYPosition(yOffset);
 		this.physicsContainer.addChild(tm);
@@ -181,9 +184,7 @@ public class LabOneGame extends Game implements IEventListener {
 		System.out.println("Loaded " + fileName);
 	}
 	
-	public void handleEvent(Event event) {
-		int index = rand.nextInt(templates.length);
-		this.addTemplate(templates[index], FIRST_TEMPLATE_OFFSET + this.numTemplatesAdded*TEMPLATE_LENGTH);
+	public void addPowerup() {
 		double randNum = Math.random();
 		Random randomPos = new Random();
 		Sprite heart = new Sprite("Heart", "Heart.png", ObstacleType.HEART);
@@ -205,12 +206,23 @@ public class LabOneGame extends Game implements IEventListener {
 			}
 			collides = false;
 		}
-		if(randNum < 0.5){
+		if (randNum < this.heartThreshold){
 			this.addObstacle(ObstacleType.HEART, tempX, tempY);
 		}
-		else{
+		else if (randNum > this.fluidThreshold){
 			this.addObstacle(ObstacleType.FLUID, tempX, tempY);
 		}
+		if (this.heartThreshold > 0.25)
+			this.heartThreshold -= 0.05;
+		if (this.fluidThreshold < 0.75)
+			this.fluidThreshold += 0.05;
+	}
+	
+	public void handleEvent(Event event) {
+		int index = rand.nextInt(templates.length);
+		this.addTemplate(templates[index], FIRST_TEMPLATE_OFFSET + this.numTemplatesAdded*TEMPLATE_LENGTH);
+		this.addPowerup();
+		this.numTemplatesAdded++;
 	}
 	
 	public boolean canJump() {
