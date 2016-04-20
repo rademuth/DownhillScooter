@@ -430,6 +430,7 @@ public class LabOneGame extends Game implements IEventListener {
 							case POTHOLE:
 								if (!this.isInAir() && !this.isInvincible()) {
 									//System.out.println("Collision");
+									soundMgr.playSoundEffect("Pothole");
 									this.subtractHealth();
 									iter.remove();
 								}
@@ -570,6 +571,9 @@ public class LabOneGame extends Game implements IEventListener {
 		soundMgr.loadSoundEffect("Heart", "heart.wav");
 		soundMgr.loadSoundEffect("Dog", "Dog Barking.wav");
 		soundMgr.loadSoundEffect("Cone", "Batman Punch.wav");
+		soundMgr.loadSoundEffect("Pothole", "cartoon037.wav");
+		soundMgr.loadMusic("Background Music", "Racing Menu.wav");
+		soundMgr.playMusic("Background Music");
 		//soundMgr.loadMusic("Background Music", "01-super-mario-bros.wav");
 		//soundMgr.playMusic("Background Music");
 
