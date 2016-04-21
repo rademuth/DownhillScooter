@@ -185,37 +185,50 @@ public class LabOneGame extends Game implements IEventListener {
 	}
 	
 	public void addPowerup() {
-		double randNum = Math.random();
-		Random randomPos = new Random();
-		Sprite heart = new Sprite("Heart", "Heart.png", ObstacleType.HEART);
-		Sprite fluid = new Sprite("Fluid", "Fluid.png", ObstacleType.FLUID);
-		int tempX = (int) randomPos.nextInt(this.getWidth());
-		int tempY = (int) (FIRST_TEMPLATE_OFFSET + this.numTemplatesAdded*TEMPLATE_LENGTH + randomPos.nextInt((int)TEMPLATE_LENGTH));
-		Rectangle tempBox = new Rectangle(tempX, tempY, heart.getUnscaledWidth(), heart.getUnscaledHeight());
-		boolean collides = true;
-		while(collides){
-			collides = false;
-			for(DisplayObject d : this.getObstacles()){
-				if(d.collidesWith(tempBox)){
-					collides = true;
-					tempX = (int) randomPos.nextInt(this.getWidth());
-					tempY = (int) (FIRST_TEMPLATE_OFFSET + this.numTemplatesAdded*TEMPLATE_LENGTH + randomPos.nextInt((int)TEMPLATE_LENGTH));
-					tempBox.setLocation(tempX, tempY);
-					break;
+		double val = this.rand.nextDouble();
+		if (val < this.heartThreshold) {
+			int tempX = (int) this.rand.nextInt(this.getWidth());
+			int tempY = (int) (FIRST_TEMPLATE_OFFSET + this.numTemplatesAdded*TEMPLATE_LENGTH + this.rand.nextInt((int)TEMPLATE_LENGTH));
+			Rectangle tempBox = new Rectangle(tempX, tempY, 48, 48);
+			boolean collides = true;
+			while (collides) {
+				collides = false;
+				for (DisplayObject d : this.getObstacles()) {
+					if (d.collidesWith(tempBox)) {
+						collides = true;
+						tempX = (int) this.rand.nextInt(this.getWidth());
+						tempY = (int) (FIRST_TEMPLATE_OFFSET + this.numTemplatesAdded*TEMPLATE_LENGTH + this.rand.nextInt((int)TEMPLATE_LENGTH));
+						tempBox.setLocation(tempX, tempY);
+						break;
+					}
 				}
+				collides = false;
 			}
-			collides = false;
-		}
-		if (randNum < this.heartThreshold){
 			this.addObstacle(ObstacleType.HEART, tempX, tempY);
-		}
-		else if (randNum > this.fluidThreshold){
+		} else if (val > this.fluidThreshold) {
+			int tempX = (int) this.rand.nextInt(this.getWidth());
+			int tempY = (int) (FIRST_TEMPLATE_OFFSET + this.numTemplatesAdded*TEMPLATE_LENGTH + this.rand.nextInt((int)TEMPLATE_LENGTH));
+			Rectangle tempBox = new Rectangle(tempX, tempY, 48, 64);
+			boolean collides = true;
+			while (collides) {
+				collides = false;
+				for (DisplayObject d : this.getObstacles()) {
+					if (d.collidesWith(tempBox)) {
+						collides = true;
+						tempX = (int) this.rand.nextInt(this.getWidth());
+						tempY = (int) (FIRST_TEMPLATE_OFFSET + this.numTemplatesAdded*TEMPLATE_LENGTH + this.rand.nextInt((int)TEMPLATE_LENGTH));
+						tempBox.setLocation(tempX, tempY);
+						break;
+					}
+				}
+				collides = false;
+			}
 			this.addObstacle(ObstacleType.FLUID, tempX, tempY);
 		}
 		if (this.heartThreshold > 0.25)
-			this.heartThreshold -= 0.05;
+			this.heartThreshold -= 0.025;
 		if (this.fluidThreshold < 0.75)
-			this.fluidThreshold += 0.05;
+			this.fluidThreshold += 0.025;
 	}
 	
 	public void handleEvent(Event event) {
@@ -257,19 +270,22 @@ public class LabOneGame extends Game implements IEventListener {
 			//System.exit(0);
 			//exitGame();
 		}
-		this.healthBar.setScaleX(this.health / MAX_HEALTH);
 		this.lastCollision = System.nanoTime();
+		// Scale down the health bar
+		Tween healthTween = new Tween(healthBar, new TweenTransition(TweenTransitionType.LINEAR));
+		healthTween.animate(TweenableParam.SCALE_X, healthBar.getScaleX(), this.health / MAX_HEALTH, 250, 0);
+		tweenJuggler.add(healthTween);
 		// Make the scooter 'blink' to indicate temporary invincibility
-		Tween tween = new Tween(scooter, new TweenTransition(TweenTransitionType.LINEAR));
-		tween.animate(TweenableParam.ALPHA, 1, 0.5, INVINCIBILITY_TIME/8, 0*INVINCIBILITY_TIME/8);
-		tween.animate(TweenableParam.ALPHA, 0.5, 1, INVINCIBILITY_TIME/8, 1*INVINCIBILITY_TIME/8);
-		tween.animate(TweenableParam.ALPHA, 1, 0.5, INVINCIBILITY_TIME/8, 2*INVINCIBILITY_TIME/8);
-		tween.animate(TweenableParam.ALPHA, 0.5, 1, INVINCIBILITY_TIME/8, 3*INVINCIBILITY_TIME/8);
-		tween.animate(TweenableParam.ALPHA, 1, 0.5, INVINCIBILITY_TIME/8, 4*INVINCIBILITY_TIME/8);
-		tween.animate(TweenableParam.ALPHA, 0.5, 1, INVINCIBILITY_TIME/8, 5*INVINCIBILITY_TIME/8);
-		tween.animate(TweenableParam.ALPHA, 1, 0.5, INVINCIBILITY_TIME/8, 6*INVINCIBILITY_TIME/8);
-		tween.animate(TweenableParam.ALPHA, 0.5, 1, INVINCIBILITY_TIME/8, 7*INVINCIBILITY_TIME/8);
-		tweenJuggler.add(tween);
+		Tween invincibilityTween = new Tween(scooter, new TweenTransition(TweenTransitionType.LINEAR));
+		invincibilityTween.animate(TweenableParam.ALPHA, 1, 0.5, INVINCIBILITY_TIME/8, 0*INVINCIBILITY_TIME/8);
+		invincibilityTween.animate(TweenableParam.ALPHA, 0.5, 1, INVINCIBILITY_TIME/8, 1*INVINCIBILITY_TIME/8);
+		invincibilityTween.animate(TweenableParam.ALPHA, 1, 0.5, INVINCIBILITY_TIME/8, 2*INVINCIBILITY_TIME/8);
+		invincibilityTween.animate(TweenableParam.ALPHA, 0.5, 1, INVINCIBILITY_TIME/8, 3*INVINCIBILITY_TIME/8);
+		invincibilityTween.animate(TweenableParam.ALPHA, 1, 0.5, INVINCIBILITY_TIME/8, 4*INVINCIBILITY_TIME/8);
+		invincibilityTween.animate(TweenableParam.ALPHA, 0.5, 1, INVINCIBILITY_TIME/8, 5*INVINCIBILITY_TIME/8);
+		invincibilityTween.animate(TweenableParam.ALPHA, 1, 0.5, INVINCIBILITY_TIME/8, 6*INVINCIBILITY_TIME/8);
+		invincibilityTween.animate(TweenableParam.ALPHA, 0.5, 1, INVINCIBILITY_TIME/8, 7*INVINCIBILITY_TIME/8);
+		tweenJuggler.add(invincibilityTween);
 	}
 	
 	public void exitGame() {
@@ -555,8 +571,10 @@ public class LabOneGame extends Game implements IEventListener {
 		scoreString.addAttribute(TextAttribute.WIDTH, TextAttribute.WIDTH_EXTENDED);
 		scoreString.addAttribute(TextAttribute.SIZE, 18);
 		g.drawString(scoreString.getIterator(), 15, 25);
+				
+		super.draw(g);
 		
-		if(lost){
+		if (lost){
 			//System.out.println("Printing YOU LOST");
 			AttributedString loseString = new AttributedString("YOU LOST");
 			loseString.addAttribute(TextAttribute.WEIGHT, TextAttribute.WEIGHT_BOLD);
@@ -564,8 +582,7 @@ public class LabOneGame extends Game implements IEventListener {
 			loseString.addAttribute(TextAttribute.SIZE, 60);
 			//g.drawString(loseString.getIterator(), this.getWidth()/2, this.getHeight()/2);
 			g.drawString(loseString.getIterator(), 15, this.getHeight()/2);
-		}		
-		super.draw(g);
+		}
 	}
 
 	/**
