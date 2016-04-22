@@ -9,6 +9,12 @@ public class DisplayText extends DisplayObjectContainer {
 	private String str;
 	private int size;
 	
+	public DisplayText(String id) {
+		super(id);
+		this.str = "Initial String";
+		this.size = 18;
+	}
+	
 	public DisplayText(String id, String str, int size) {
 		super(id);
 		this.str = str;
@@ -17,6 +23,10 @@ public class DisplayText extends DisplayObjectContainer {
 	
 	public void setText(String str) {
 		this.str = str;
+	}
+	
+	public void setSize(int size) {
+		this.size = size;
 	}
 
 	@Override

@@ -6,10 +6,8 @@ import java.util.List;
 import edu.virginia.engine.util.Vector;
 
 public class PhysicsSprite extends AnimatedSprite {
-
-	private final static Vector GRAVITY = new Vector(0,-10); // applied as acceleration
 	
-	private long lastKinematicsUpdate;
+	public long lastKinematicsUpdate;
 	private Vector velocity;
 	private Vector acceleration;
 	
@@ -85,7 +83,7 @@ public class PhysicsSprite extends AnimatedSprite {
 			lastKinematicsUpdate = System.nanoTime();
 				
 			// Calculate the velocity
-			velocity.add(GRAVITY.product(elapsedTime));
+			velocity.add(acceleration.product(elapsedTime));
 				
 			// Calculate the position
 			this.setPosition(oldPosition.sum(velocity.product(elapsedTime)));

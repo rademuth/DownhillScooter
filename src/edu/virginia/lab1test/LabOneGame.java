@@ -3,10 +3,8 @@ package edu.virginia.lab1test;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
-import java.awt.font.TextAttribute;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.text.AttributedString;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Random;
@@ -27,7 +25,6 @@ import edu.virginia.engine.util.Tween;
 import edu.virginia.engine.util.TweenTransition;
 import edu.virginia.engine.util.TweenTransitionType;
 import edu.virginia.engine.util.TweenableParam;
-import edu.virginia.engine.util.Vector;
 
 /**
  * Example game that utilizes our engine. We can create a simple prototype game with just a couple lines of code
@@ -35,10 +32,15 @@ import edu.virginia.engine.util.Vector;
  * */
 public class LabOneGame extends Game implements IEventListener {
 
+	// Predefined images and templates
 	private final static String[] dogImages = {"Dog_walk_1.png", "Dog_walk_2.png", "Dog_walk_3.png", "Dog_walk_4.png"};
+	private final static String[] templates = {"template1.txt", "template2.txt", "template3.txt", "template4.txt", "template5.txt", "template6.txt"};
+
+	// Game dimensions
 	public final static int GAME_WIDTH = 500;
 	public final static int GAME_HEIGHT = 725;
 	
+	// Game information
 	private final static double INITIAL_VELOCITY = -100;
 	private final static double VELOCITY_INCREMENT = 10;
 	private final static double MIN_SPEED = -100;
@@ -49,7 +51,33 @@ public class LabOneGame extends Game implements IEventListener {
 	private final static double FLUID_INCREMENT = 1;
 	private final static double MAX_HEALTH = 100;
 	private final static double HEALTH_INCREMENT = 10;
+	private final static double TEMPLATE_LENGTH = 6000;
+	private final static double FIRST_TEMPLATE_OFFSET = 2000;
 
+	/* 
+	 * Sprites and containers
+	 * 
+	 * - Game
+	 *   - gameContainer
+	 *     - scooter
+	 *     - physicsContainer
+	 *       - lineContainer
+	 *       - potholeContainer
+	 *       - trafficConeContainer
+	 *       - dogContainer
+	 *       - fluidContainer
+	 *       - heartContainer
+	 *     - uiContainer
+	 *       - fluidBar
+	 *       - fluidIcon
+	 *       - fluidFrame
+	 *       - healthBar
+	 *       - healthIcon
+	 *       - healthFrame
+	 *     - scoreText
+	 *     - lossText
+	 *   - menuContainer
+	 */
 	private Sprite scooter;
 	private PhysicsSprite physicsContainer;
 	private DisplayObjectContainer lineContainer;
@@ -67,93 +95,103 @@ public class LabOneGame extends Game implements IEventListener {
 	private Sprite healthBar;
 	private Sprite healthIcon;
 	private Sprite healthFrame;
-
-	private long lastJump;
-	private long lastCollision;
-	private long loseTime;
-	private double fluid;
-	private double health;
-	private double score;
-	
-	private boolean firstPass = true;
-	private boolean lost = false;
-	
-	private Random rand;
-	private final static String[] templates = {"template1.txt", "template2.txt", "template3.txt", "template4.txt", "template5.txt", "template6.txt"};
-	private final static double TEMPLATE_LENGTH = 6000;
-	private final static double FIRST_TEMPLATE_OFFSET = 2000;
-	private int numTemplatesAdded;
-	
-	private double fluidThreshold;
-	private double heartThreshold;
-	
 	private DisplayText scoreText;
 	private DisplayText lostText;
 	
+	// Game variables
+	private boolean objectsReady = false;
 	private boolean displayMenu;
-
+	private boolean lost;
+	private long lastLoss;
+	private long lastJump;
+	private long lastCollision;
+	private double fluid;
+	private double health;
+	private double score;
+	private double fluidThreshold;
+	private double heartThreshold;
+	private int numTemplatesAdded;	
+	private Random rand;
+	
 	/**
 	 * Constructor. See constructor in Game.java for details on the parameters given
 	 * */
 	public LabOneGame() {
 		super("Lab One Test Game", GAME_WIDTH, GAME_HEIGHT);
 		
-		this.displayMenu = true;
-		this.rand = new Random();
-		this.scoreText = new DisplayText("Score Text", "0", 18);		
-		this.scoreText.setXPosition(15);
-		this.scoreText.setYPosition(25);
-		this.lostText = new DisplayText("Lost Text", "YOU LOST", 60);	
-		this.lostText.setXPosition(15);
-		this.lostText.setYPosition(GAME_HEIGHT/2);
-		this.lostText.setVisible(false);
-		
-		this.fluidBar = new Sprite("Fluid", "Fluid_bar.png");
-		this.fluidIcon = new Sprite("Fluid Icon", "Fluid_icon.png");
-		this.fluidFrame = new Sprite("Fluid Frame", "Frame.png");
-		this.fluidBar.setAlpha(0.75f);
-		this.fluidIcon.setAlpha(0.90f);
-		this.fluidFrame.setAlpha(0.90f);
-		this.fluidBar.setXPosition(25+fluidIcon.getUnscaledWidth());
-		this.fluidIcon.setXPosition(20);
-		this.fluidFrame.setXPosition(25+fluidIcon.getUnscaledWidth());
-		
-		this.healthBar = new Sprite("Health", "Health_bar.png");
-		this.healthIcon = new Sprite("Heart Icon", "Heart_icon.png");
-		this.healthFrame = new Sprite("Health Frame", "Frame.png");
-		this.healthBar.setAlpha(0.75f);
-		this.healthIcon.setAlpha(0.90f);
-		this.healthFrame.setAlpha(0.90f);
-		this.healthBar.setXPosition(GAME_WIDTH-(25+healthBar.getUnscaledWidth()));
-		this.healthIcon.setXPosition(GAME_WIDTH-(30+healthBar.getUnscaledWidth()+healthIcon.getUnscaledWidth()));
-		this.healthFrame.setXPosition(GAME_WIDTH-(25+healthFrame.getUnscaledWidth()));
-		
+		// Initialize sprites and containers
 		this.scooter = new Sprite("Scooter", "Test 2.png");
-		this.scooter.setXPivotPoint(this.scooter.getUnscaledWidth()/2);
-		this.scooter.setXPosition(GAME_WIDTH/2);
-		this.scooter.hitboxYBase = this.scooter.getUnscaledHeight()/2;
-		this.scooter.hitboxHeight = this.scooter.getUnscaledHeight()/2;
-		
+		this.physicsContainer = new PhysicsSprite("ObstacleParent");
 		this.lineContainer = new DisplayObjectContainer("Line Container");
 		this.potholeContainer = new DisplayObjectContainer("Pothole Container");
 		this.trafficConeContainer = new DisplayObjectContainer("Traffic Cone Container");
 		this.dogContainer = new DisplayObjectContainer("Dog Container");
 		this.fluidContainer = new DisplayObjectContainer("Fluid Container");
 		this.heartContainer = new DisplayObjectContainer("Heart Container");
+		this.uiContainer = new DisplayObjectContainer("UI Container");
 		this.menuContainer = new DisplayObjectContainer("Menu Container");
 		this.gameContainer = new DisplayObjectContainer("Game Container");
+		this.fluidBar = new Sprite("Fluid", "Fluid_bar.png");
+		this.fluidIcon = new Sprite("Fluid Icon", "Fluid_icon.png");
+		this.fluidFrame = new Sprite("Fluid Frame", "Frame.png");
+		this.healthBar = new Sprite("Health", "Health_bar.png");
+		this.healthIcon = new Sprite("Heart Icon", "Heart_icon.png");
+		this.healthFrame = new Sprite("Health Frame", "Frame.png");
+		this.scoreText = new DisplayText("Score Text", "0", 18);
+		this.lostText = new DisplayText("Lost Text", "YOU LOST", 60);
 		
-		this.uiContainer = new DisplayObjectContainer("UI Container");
+		// Edit initial values for sprites and containers
+		this.scooter.setXPivotPoint(this.scooter.getUnscaledWidth()/2);
+		this.scooter.setXPosition(GAME_WIDTH/2);
+		this.scooter.hitboxYBase = this.scooter.getUnscaledHeight()/2;
+		this.scooter.hitboxHeight = this.scooter.getUnscaledHeight()/2;
 		this.uiContainer.setYPosition(GAME_HEIGHT-75);
+		this.fluidBar.setAlpha(0.75f);
+		this.fluidIcon.setAlpha(0.90f);
+		this.fluidFrame.setAlpha(0.90f);
+		this.fluidBar.setXPosition(25+fluidIcon.getUnscaledWidth());
+		this.fluidIcon.setXPosition(20);
+		this.fluidFrame.setXPosition(25+fluidIcon.getUnscaledWidth());		
+		this.healthBar.setAlpha(0.75f);
+		this.healthIcon.setAlpha(0.90f);
+		this.healthFrame.setAlpha(0.90f);
+		this.healthBar.setXPosition(GAME_WIDTH-(25+healthBar.getUnscaledWidth()));
+		this.healthIcon.setXPosition(GAME_WIDTH-(30+healthBar.getUnscaledWidth()+healthIcon.getUnscaledWidth()));
+		this.healthFrame.setXPosition(GAME_WIDTH-(25+healthFrame.getUnscaledWidth()));
+		this.scoreText.setXPosition(15);
+		this.scoreText.setYPosition(25);
+		this.lostText.setXPosition(15);
+		this.lostText.setYPosition(GAME_HEIGHT/2);
+		this.lostText.setVisible(false);
 		
-		this.physicsContainer = new PhysicsSprite("ObstacleParent");
-		this.physicsContainer.addChild(this.lineContainer);
+		// Initialize game variables
+		this.displayMenu = true;
+		this.lost = false;
+		this.lastLoss = -1;
+		this.lastJump = -1;
+		this.lastCollision = -1;
+		this.fluid = MAX_FLUID;
+		this.health = MAX_HEALTH;
+		this.score = 0;
+		this.fluidThreshold = 0.5;
+		this.heartThreshold = 0.5;
+		this.numTemplatesAdded = 0;
+		this.rand = new Random();
+		
+		// Organize the display tree
+		this.addChild(menuContainer);
+		this.addChild(gameContainer);
+		this.gameContainer.addChild(physicsContainer);
+		this.gameContainer.addChild(uiContainer);
+		this.gameContainer.addChild(scoreText);
+		this.gameContainer.addChild(scooter);
+		this.gameContainer.addChild(lostText);
+		this.physicsContainer.addChild(lineContainer);
 		this.physicsContainer.addChild(this.potholeContainer);
 		this.physicsContainer.addChild(this.trafficConeContainer);
 		this.physicsContainer.addChild(this.dogContainer);
 		this.physicsContainer.addChild(this.fluidContainer);
 		this.physicsContainer.addChild(this.heartContainer);
-		
 		this.uiContainer.addChild(fluidBar);
 		this.uiContainer.addChild(fluidIcon);
 		this.uiContainer.addChild(fluidFrame);
@@ -161,38 +199,36 @@ public class LabOneGame extends Game implements IEventListener {
 		this.uiContainer.addChild(healthIcon);
 		this.uiContainer.addChild(healthFrame);
 		
-		this.gameContainer.addChild(this.physicsContainer);
-		this.gameContainer.addChild(this.scooter);
-		this.gameContainer.addChild(this.uiContainer);
-		this.gameContainer.addChild(this.scoreText);
-		this.gameContainer.addChild(this.lostText);
+		this.removeChild(gameContainer);
 		
-		this.addChild(menuContainer);
 	}
 	
 	public void startGame() {
-		// Instantiate initial values for game components
+		
+		// Edit initial values for sprites and containers
+		this.scooter.setXPosition(GAME_WIDTH/2);
+		this.physicsContainer.setYPosition(0);
+		this.physicsContainer.setYVelocity(INITIAL_VELOCITY);
+		this.physicsContainer.setYAcceleration(-10);
+		this.fluidBar.setScaleX(1);
+		this.healthBar.setScaleX(1);
+		this.lostText.setVisible(false); // What about the text itself???
+		
+		// Initialize game variables
+		this.displayMenu = false;
+		this.lost = false;
+		this.lastLoss = -1;
 		this.lastJump = System.nanoTime();
 		this.lastCollision = System.nanoTime();
-		this.loseTime = -1;
 		this.fluid = MAX_FLUID;
 		this.health = MAX_HEALTH;
 		this.score = 0;
-		this.numTemplatesAdded = 0;
 		this.fluidThreshold = 0.5;
 		this.heartThreshold = 0.5;
-		this.scoreText = new DisplayText("Score Text", (int)this.score+"", 18);
-		this.physicsContainer.setYPosition(0);
-		this.physicsContainer.setYVelocity(INITIAL_VELOCITY);
-		
-		/* Remove old obstacles and add new ones */
-		
-		this.lineContainer.removeAll();
-		this.dogContainer.removeAll();
-		this.potholeContainer.removeAll();
-		this.trafficConeContainer.removeAll();
-		this.removeSprites();
-		
+		this.numTemplatesAdded = 0;
+				
+		/* Add obstacles to the level */
+				
 		// Add lines
 		for (int i = 0; i< 1000; i++) {
 			this.addLine(GAME_WIDTH/2, 256*i);
@@ -206,13 +242,32 @@ public class LabOneGame extends Game implements IEventListener {
 		// Load the first template
 		this.handleEvent(null);
 
-		// Add the game container as a child
+		// Swap the gameContainer with the menuContainer
 		this.removeChild(menuContainer);
 		this.addChild(gameContainer);
 	}
 	
 	public void endGame() {
-		// Clean up game components
+		
+		// Clean up obstacles from the level
+		this.lineContainer.removeAll();
+		this.potholeContainer.removeAll();
+		this.trafficConeContainer.removeAll();
+		this.dogContainer.removeAll();
+		this.fluidContainer.removeAll();
+		this.heartContainer.removeAll();
+		this.removeSprites();
+
+		// Edit initial values for sprites and containers
+		this.physicsContainer.setYPosition(0);
+		this.physicsContainer.setYVelocity(0);
+		this.physicsContainer.setYAcceleration(0);
+		this.physicsContainer.lastKinematicsUpdate = -1;
+
+		// Initialize game variables
+		this.displayMenu = true;
+		
+		// Add the menu container as a child
 		this.removeChild(gameContainer);
 		this.addChild(menuContainer);
 	}
@@ -322,16 +377,18 @@ public class LabOneGame extends Game implements IEventListener {
 	
 	public void subtractHealth() {
 		this.health -= HEALTH_INCREMENT;
-		if (this.health <= 0){
-			//System.out.println("You're dead!");
-			System.out.println(this.score);
-			//System.exit(0);
-			//exitGame();
+		if (this.health < 0){
+			this.health = 0;
+			this.lost = true;
+			this.lostText.setVisible(true);
+			this.lastLoss = System.nanoTime();
+			this.physicsContainer.setYVelocity(0);
+			this.physicsContainer.setYAcceleration(0);
 		}
 		this.lastCollision = System.nanoTime();
 		// Scale down the health bar
 		Tween healthTween = new Tween(healthBar, new TweenTransition(TweenTransitionType.LINEAR));
-		healthTween.animate(TweenableParam.SCALE_X, healthBar.getScaleX(), this.health / MAX_HEALTH, 250, 0);
+		healthTween.animate(TweenableParam.SCALE_X, healthBar.getScaleX(), this.health / MAX_HEALTH + 0.01, 250, 0);
 		tweenJuggler.add(healthTween);
 		// Make the scooter 'blink' to indicate temporary invincibility
 		Tween invincibilityTween = new Tween(scooter, new TweenTransition(TweenTransitionType.LINEAR));
@@ -349,12 +406,12 @@ public class LabOneGame extends Game implements IEventListener {
 	public void exitGame() {
 		//System.out.println("Exiting Game");
 		this.lostText.setVisible(true);
-		if(loseTime < 0){
+		if(lastLoss < 0){
 			//System.out.println("Setting loseTime");
-			loseTime = System.nanoTime();
+			lastLoss = System.nanoTime();
 		}
 		
-		if((System.nanoTime() - loseTime)/1000000 >= 3000){
+		if((System.nanoTime() - lastLoss)/1000000 >= 3000){
 			//System.out.println("Actually Exiting Game");
 			displayMenu = true;
 			this.endGame();
@@ -503,28 +560,32 @@ public class LabOneGame extends Game implements IEventListener {
 	public void update(ArrayList<String> pressedKeys){
 		super.update(pressedKeys);		
 		
-		if (displayMenu) {
-			if (pressedKeys.size() > 0) {
-				displayMenu = false;
-				this.startGame();
-			}
-		} else {
-			if (!firstPass) {
-	
-				if (this.health <= 0) {
-					//this.stop();
-					exitGame();
+		// Check if all objects have been initialized
+		if (objectsReady) {
+			if (displayMenu) {
+				if (pressedKeys.size() > 0) {
+					this.startGame();
+				}
+			} else {
+		
+				if (this.lost) {
+					if ((System.nanoTime() - this.lastLoss) / 1000000 > 3000) {
+						displayMenu = true;
+						this.endGame();
+					} else {
+						return;
+					}
 				}
 				
 				this.score -= this.physicsContainer.getYVelocity();
 				this.scoreText.setText((int)this.score+"");
-				
+					
 				/** 
 				 * Might have issues running during the first frame of the game since sprites
 				 * might not have been set to their correct positions. This will result in
 				 * collisions even though sprites may not physically touch each other.
 				 */
-				
+					
 				Iterator<Sprite> iter = this.getObstacles().iterator();
 				while (iter.hasNext()) {
 					Sprite s = iter.next();
@@ -623,19 +684,15 @@ public class LabOneGame extends Game implements IEventListener {
 					if (pressedKeys.contains(KeyEvent.getKeyText(KeyEvent.VK_SPACE)) && this.fluid > 0) {
 						this.subtractFluid();
 					}
-					
 					// Speed up the character
 					if (pressedKeys.contains(KeyEvent.getKeyText(KeyEvent.VK_DOWN))) {
 						this.physicsContainer.addYVelocity(-VELOCITY_INCREMENT/4);
 					}
-					
-				}
-				
-			} else {
-				firstPass = false;
+				}		
 			}
+		} else {
+			objectsReady = true;
 		}
-		
 	}
 	
 	/**
