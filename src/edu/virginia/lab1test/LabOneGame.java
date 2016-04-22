@@ -273,7 +273,7 @@ public class LabOneGame extends Game implements IEventListener {
 		this.lastCollision = System.nanoTime();
 		// Scale down the health bar
 		Tween healthTween = new Tween(healthBar, new TweenTransition(TweenTransitionType.LINEAR));
-		healthTween.animate(TweenableParam.SCALE_X, healthBar.getScaleX(), this.health / MAX_HEALTH, 250, 0);
+		healthTween.animate(TweenableParam.SCALE_X, healthBar.getScaleX(), this.health / MAX_HEALTH + 0.01, 250, 0);
 		tweenJuggler.add(healthTween);
 		// Make the scooter 'blink' to indicate temporary invincibility
 		Tween invincibilityTween = new Tween(scooter, new TweenTransition(TweenTransitionType.LINEAR));
@@ -434,12 +434,12 @@ public class LabOneGame extends Game implements IEventListener {
 		super.update(pressedKeys);		
 		
 		if (!firstPass) {
-
-			if (this.health <= 0) {
+			
+			if (this.health <= 0 || this.lost) {
 				//this.stop();
 				exitGame();
 			}
-			
+
 			this.score -= this.physicsContainer.getYVelocity();
 			
 			/** 
@@ -449,7 +449,7 @@ public class LabOneGame extends Game implements IEventListener {
 			 */
 			
 			Iterator<Sprite> iter = this.getObstacles().iterator();
-			while (iter.hasNext()) {
+			while (iter.hasNext() && !this.lost) {
 				Sprite s = iter.next();
 				// Run collision detection algorithm between objects
 				if (scooter.collidesWith(s)) {
@@ -553,6 +553,7 @@ public class LabOneGame extends Game implements IEventListener {
 				}
 				
 			}
+			
 			
 		} else {
 			firstPass = false;
