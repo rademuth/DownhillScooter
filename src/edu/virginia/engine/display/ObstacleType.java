@@ -16,5 +16,7 @@ public enum ObstacleType {
 	SPLIT,
 	SPLIT_LEFT,
 	SPLIT_RIGHT,
+	WEDGE,
+	DIAMOND,
 	CONSTRUCTION_ZONE
 }

@@ -14,6 +14,7 @@ import java.util.Scanner;
 
 import edu.virginia.engine.display.DisplayObject;
 import edu.virginia.engine.display.DisplayObjectContainer;
+import edu.virginia.engine.display.DisplayText;
 import edu.virginia.engine.display.Game;
 import edu.virginia.engine.display.MovingSprite;
 import edu.virginia.engine.display.ObstacleType;
@@ -26,6 +27,7 @@ import edu.virginia.engine.util.Tween;
 import edu.virginia.engine.util.TweenTransition;
 import edu.virginia.engine.util.TweenTransitionType;
 import edu.virginia.engine.util.TweenableParam;
+import edu.virginia.engine.util.Vector;
 
 /**
  * Example game that utilizes our engine. We can create a simple prototype game with just a couple lines of code
@@ -57,6 +59,8 @@ public class LabOneGame extends Game implements IEventListener {
 	private DisplayObjectContainer fluidContainer;
 	private DisplayObjectContainer heartContainer;
 	private DisplayObjectContainer uiContainer;
+	private DisplayObjectContainer menuContainer;
+	private DisplayObjectContainer gameContainer;
 	private Sprite fluidBar;
 	private Sprite fluidIcon;
 	private Sprite fluidFrame;	
@@ -82,6 +86,11 @@ public class LabOneGame extends Game implements IEventListener {
 	
 	private double fluidThreshold;
 	private double heartThreshold;
+	
+	private DisplayText scoreText;
+	private DisplayText lostText;
+	
+	private boolean displayMenu;
 
 	/**
 	 * Constructor. See constructor in Game.java for details on the parameters given
@@ -89,16 +98,15 @@ public class LabOneGame extends Game implements IEventListener {
 	public LabOneGame() {
 		super("Lab One Test Game", GAME_WIDTH, GAME_HEIGHT);
 		
+		this.displayMenu = true;
 		this.rand = new Random();
-		this.lastJump = System.nanoTime();
-		this.lastCollision = System.nanoTime();
-		this.loseTime = -1;
-		this.fluid = MAX_FLUID;
-		this.health = MAX_HEALTH;
-		this.score = 0;
-		this.numTemplatesAdded = 0;
-		this.fluidThreshold = 0.5;
-		this.heartThreshold = 0.5;
+		this.scoreText = new DisplayText("Score Text", "0", 18);		
+		this.scoreText.setXPosition(15);
+		this.scoreText.setYPosition(25);
+		this.lostText = new DisplayText("Lost Text", "YOU LOST", 60);	
+		this.lostText.setXPosition(15);
+		this.lostText.setYPosition(GAME_HEIGHT/2);
+		this.lostText.setVisible(false);
 		
 		this.fluidBar = new Sprite("Fluid", "Fluid_bar.png");
 		this.fluidIcon = new Sprite("Fluid Icon", "Fluid_icon.png");
@@ -126,19 +134,19 @@ public class LabOneGame extends Game implements IEventListener {
 		this.scooter.hitboxYBase = this.scooter.getUnscaledHeight()/2;
 		this.scooter.hitboxHeight = this.scooter.getUnscaledHeight()/2;
 		
-		this.physicsContainer = new PhysicsSprite("ObstacleParent");
-		this.physicsContainer.setYVelocity(INITIAL_VELOCITY);
-		
 		this.lineContainer = new DisplayObjectContainer("Line Container");
 		this.potholeContainer = new DisplayObjectContainer("Pothole Container");
 		this.trafficConeContainer = new DisplayObjectContainer("Traffic Cone Container");
 		this.dogContainer = new DisplayObjectContainer("Dog Container");
 		this.fluidContainer = new DisplayObjectContainer("Fluid Container");
 		this.heartContainer = new DisplayObjectContainer("Heart Container");
+		this.menuContainer = new DisplayObjectContainer("Menu Container");
+		this.gameContainer = new DisplayObjectContainer("Game Container");
 		
 		this.uiContainer = new DisplayObjectContainer("UI Container");
 		this.uiContainer.setYPosition(GAME_HEIGHT-75);
 		
+		this.physicsContainer = new PhysicsSprite("ObstacleParent");
 		this.physicsContainer.addChild(this.lineContainer);
 		this.physicsContainer.addChild(this.potholeContainer);
 		this.physicsContainer.addChild(this.trafficConeContainer);
@@ -153,10 +161,60 @@ public class LabOneGame extends Game implements IEventListener {
 		this.uiContainer.addChild(healthIcon);
 		this.uiContainer.addChild(healthFrame);
 		
-		this.addChild(this.physicsContainer);
-		this.addChild(this.scooter);
-		this.addChild(this.uiContainer);
+		this.gameContainer.addChild(this.physicsContainer);
+		this.gameContainer.addChild(this.scooter);
+		this.gameContainer.addChild(this.uiContainer);
+		this.gameContainer.addChild(this.scoreText);
+		this.gameContainer.addChild(this.lostText);
 		
+		this.addChild(menuContainer);
+	}
+	
+	public void startGame() {
+		// Instantiate initial values for game components
+		this.lastJump = System.nanoTime();
+		this.lastCollision = System.nanoTime();
+		this.loseTime = -1;
+		this.fluid = MAX_FLUID;
+		this.health = MAX_HEALTH;
+		this.score = 0;
+		this.numTemplatesAdded = 0;
+		this.fluidThreshold = 0.5;
+		this.heartThreshold = 0.5;
+		this.scoreText = new DisplayText("Score Text", (int)this.score+"", 18);
+		this.physicsContainer.setYPosition(0);
+		this.physicsContainer.setYVelocity(INITIAL_VELOCITY);
+		
+		/* Remove old obstacles and add new ones */
+		
+		this.lineContainer.removeAll();
+		this.dogContainer.removeAll();
+		this.potholeContainer.removeAll();
+		this.trafficConeContainer.removeAll();
+		this.removeSprites();
+		
+		// Add lines
+		for (int i = 0; i< 1000; i++) {
+			this.addLine(GAME_WIDTH/2, 256*i);
+		}
+		
+		// Tutorial obstacles
+		this.addObstacle(ObstacleType.ROW, 0, 1000);
+		this.addObstacle(ObstacleType.FUNNEL, 0, 1250);
+		this.addObstacle(ObstacleType.DOG, GAME_WIDTH/2, 1750);
+		
+		// Load the first template
+		this.handleEvent(null);
+
+		// Add the game container as a child
+		this.removeChild(menuContainer);
+		this.addChild(gameContainer);
+	}
+	
+	public void endGame() {
+		// Clean up game components
+		this.removeChild(gameContainer);
+		this.addChild(menuContainer);
 	}
 	
 	public void addTemplate(String fileName, double yOffset) {
@@ -290,15 +348,16 @@ public class LabOneGame extends Game implements IEventListener {
 	
 	public void exitGame() {
 		//System.out.println("Exiting Game");
-		lost = true;
-		if(loseTime == -1){
+		this.lostText.setVisible(true);
+		if(loseTime < 0){
 			//System.out.println("Setting loseTime");
 			loseTime = System.nanoTime();
 		}
 		
 		if((System.nanoTime() - loseTime)/1000000 >= 3000){
 			//System.out.println("Actually Exiting Game");
-			System.exit(0);
+			displayMenu = true;
+			this.endGame();
 		}
 	}
 	
@@ -403,9 +462,20 @@ public class LabOneGame extends Game implements IEventListener {
 				this.addObstacle(ObstacleType.SPLIT, 0, yPos);
 				potholesNeeded = (int)Math.ceil((double)GAME_WIDTH / 50.0);
 				for (int i = 0; i < potholesNeeded / 2; i++) {
-					this.addObstacle(ObstacleType.POTHOLE,  GAME_WIDTH - (50*i + 25), yPos + 50*9);
-					
+					this.addObstacle(ObstacleType.POTHOLE, GAME_WIDTH - (50*i + 25), yPos + 50*9);	
 				}
+				break;
+			case WEDGE:
+				conesNeeded = (int)Math.ceil((double)GAME_WIDTH / 35.0) - 6;
+				this.addObstacle(ObstacleType.TRAFFIC_CONE, GAME_WIDTH / 2, yPos);
+				for (int i = 1; i <= conesNeeded / 2; i++) {
+					this.addObstacle(ObstacleType.TRAFFIC_CONE, GAME_WIDTH/2 - 25*i, yPos + 50*i);	
+					this.addObstacle(ObstacleType.TRAFFIC_CONE, GAME_WIDTH/2 + 25*i, yPos + 50*i);	
+				}
+				break;
+			case DIAMOND:
+				this.addObstacle(ObstacleType.WEDGE, 0, yPos);
+				this.addObstacle(ObstacleType.FUNNEL, 0, yPos + 500);
 				break;
 			case CONSTRUCTION_ZONE:
 				this.addObstacle(ObstacleType.TRAFFIC_CONE, xPos, yPos);
@@ -433,129 +503,137 @@ public class LabOneGame extends Game implements IEventListener {
 	public void update(ArrayList<String> pressedKeys){
 		super.update(pressedKeys);		
 		
-		if (!firstPass) {
-
-			if (this.health <= 0) {
-				//this.stop();
-				exitGame();
+		if (displayMenu) {
+			if (pressedKeys.size() > 0) {
+				displayMenu = false;
+				this.startGame();
 			}
-			
-			this.score -= this.physicsContainer.getYVelocity();
-			
-			/** 
-			 * Might have issues running during the first frame of the game since sprites
-			 * might not have been set to their correct positions. This will result in
-			 * collisions even though sprites may not physically touch each other.
-			 */
-			
-			Iterator<Sprite> iter = this.getObstacles().iterator();
-			while (iter.hasNext()) {
-				Sprite s = iter.next();
-				// Run collision detection algorithm between objects
-				if (scooter.collidesWith(s)) {
-					if (s.type != null) {
-						switch (s.type) {
-							case POTHOLE:
-								if (!this.isInAir() && !this.isInvincible()) {
-									//System.out.println("Collision");
-									soundMgr.playSoundEffect("Pothole");
-									this.subtractHealth();
+		} else {
+			if (!firstPass) {
+	
+				if (this.health <= 0) {
+					//this.stop();
+					exitGame();
+				}
+				
+				this.score -= this.physicsContainer.getYVelocity();
+				this.scoreText.setText((int)this.score+"");
+				
+				/** 
+				 * Might have issues running during the first frame of the game since sprites
+				 * might not have been set to their correct positions. This will result in
+				 * collisions even though sprites may not physically touch each other.
+				 */
+				
+				Iterator<Sprite> iter = this.getObstacles().iterator();
+				while (iter.hasNext()) {
+					Sprite s = iter.next();
+					// Run collision detection algorithm between objects
+					if (scooter.collidesWith(s)) {
+						if (s.type != null) {
+							switch (s.type) {
+								case POTHOLE:
+									if (!this.isInAir() && !this.isInvincible()) {
+										//System.out.println("Collision");
+										soundMgr.playSoundEffect("Pothole");
+										this.subtractHealth();
+										iter.remove();
+									}
+									break;
+								case TRAFFIC_CONE:
+									if (!this.isInvincible()) {
+										//System.out.println("Collision");
+										this.subtractHealth();
+										soundMgr.playSoundEffect("Cone");
+										iter.remove();
+									}
+									break;
+								case DOG:
+									if (!this.isInvincible()) {
+										//System.out.println("Collision");
+										this.subtractHealth();
+										soundMgr.playSoundEffect("Dog");
+										iter.remove();
+									}
+									break;
+								case FLUID:
+									//System.out.println("Fluid");
+									s.setVisible(false);
+									this.pickupFluid();
 									iter.remove();
-								}
-								break;
-							case TRAFFIC_CONE:
-								if (!this.isInvincible()) {
-									//System.out.println("Collision");
-									this.subtractHealth();
-									soundMgr.playSoundEffect("Cone");
+									break;
+								case HEART:
+									//System.out.println("Heart");
+									s.setVisible(false);
+									pickupHealth();
 									iter.remove();
-								}
+									break;
+							default:
 								break;
-							case DOG:
-								if (!this.isInvincible()) {
-									//System.out.println("Collision");
-									this.subtractHealth();
-									soundMgr.playSoundEffect("Dog");
-									iter.remove();
-								}
-								break;
-							case FLUID:
-								//System.out.println("Fluid");
-								s.setVisible(false);
-								this.pickupFluid();
-								iter.remove();
-								break;
-							case HEART:
-								//System.out.println("Heart");
-								s.setVisible(false);
-								pickupHealth();
-								iter.remove();
-								break;
-						default:
-							break;
+							}
+						}
+					} else {
+						if (s.getLocalToGlobalCoors(0, s.getUnscaledHeight()).getY() < 0) {
+							iter.remove();
 						}
 					}
-				} else {
-					if (s.getLocalToGlobalCoors(0, s.getUnscaledHeight()).getY() < 0) {
-						iter.remove();
-					}
 				}
-			}
-			
-			if (scooter != null) {
 				
-				if (pressedKeys.contains(KeyEvent.getKeyText(KeyEvent.VK_LEFT)) && !pressedKeys.contains(KeyEvent.getKeyText(KeyEvent.VK_RIGHT))) {
-					// Move the character to the left
-					// scooter.animate(...)
-					scooter.setXPosition(scooter.getXPosition() - HORIZONTAL_INCREMENT);
-					scooter.setRotation(2.5);
-					if (scooter.getXPosition() < 0) {
-						scooter.setXPosition(0);
+				if (scooter != null) {
+					
+					if (pressedKeys.contains(KeyEvent.getKeyText(KeyEvent.VK_LEFT)) && !pressedKeys.contains(KeyEvent.getKeyText(KeyEvent.VK_RIGHT))) {
+						// Move the character to the left
+						// scooter.animate(...)
+						scooter.setXPosition(scooter.getXPosition() - HORIZONTAL_INCREMENT);
+						scooter.setRotation(2.5);
+						if (scooter.getXPosition() < 0) {
+							scooter.setXPosition(0);
+							scooter.setRotation(0);
+						}
+					} else if (pressedKeys.contains(KeyEvent.getKeyText(KeyEvent.VK_RIGHT)) && !pressedKeys.contains(KeyEvent.getKeyText(KeyEvent.VK_LEFT))) {
+						// Move the character to the right
+						// scooter.animate(...)
+						scooter.setXPosition(scooter.getXPosition() + HORIZONTAL_INCREMENT);
+						scooter.setRotation(-2.5);
+						if (scooter.getXPosition() > this.getWidth()) {
+							scooter.setXPosition(this.getWidth());
+							scooter.setRotation(0);
+						}
+					} else {
+						// No horizontal movement
 						scooter.setRotation(0);
 					}
-				} else if (pressedKeys.contains(KeyEvent.getKeyText(KeyEvent.VK_RIGHT)) && !pressedKeys.contains(KeyEvent.getKeyText(KeyEvent.VK_LEFT))) {
-					// Move the character to the right
-					// scooter.animate(...)
-					scooter.setXPosition(scooter.getXPosition() + HORIZONTAL_INCREMENT);
-					scooter.setRotation(-2.5);
-					if (scooter.getXPosition() > this.getWidth()) {
-						scooter.setXPosition(this.getWidth());
-						scooter.setRotation(0);
+					
+					// Make the character jump
+					if (pressedKeys.contains(KeyEvent.getKeyText(KeyEvent.VK_UP)) && this.canJump()) {
+						//soundMgr.playSoundEffect("Jump");
+						this.lastJump = System.nanoTime();
+						Tween tween = new Tween(scooter, new TweenTransition(TweenTransitionType.QUADRATIC));
+						tween.animate(TweenableParam.SCALE_X, 1, 1.25, JUMP_TIME/2);
+						tween.animate(TweenableParam.SCALE_Y, 1, 1.25, JUMP_TIME/2);
+						tween.animate(TweenableParam.SCALE_X, 1.25, 1, JUMP_TIME/2, JUMP_TIME/2);
+						tween.animate(TweenableParam.SCALE_Y, 1.25, 1, JUMP_TIME/2, JUMP_TIME/2);
+						tweenJuggler.add(tween);
 					}
-				} else {
-					// No horizontal movement
-					scooter.setRotation(0);
+					
+				}	
+				
+				if (physicsContainer != null) {
+					// Slow down the character
+					if (pressedKeys.contains(KeyEvent.getKeyText(KeyEvent.VK_SPACE)) && this.fluid > 0) {
+						this.subtractFluid();
+					}
+					
+					// Speed up the character
+					if (pressedKeys.contains(KeyEvent.getKeyText(KeyEvent.VK_DOWN))) {
+						this.physicsContainer.addYVelocity(-VELOCITY_INCREMENT/4);
+					}
+					
 				}
 				
-				// Make the character jump
-				if (pressedKeys.contains(KeyEvent.getKeyText(KeyEvent.VK_UP)) && this.canJump()) {
-					//soundMgr.playSoundEffect("Jump");
-					this.lastJump = System.nanoTime();
-					Tween tween = new Tween(scooter, new TweenTransition(TweenTransitionType.QUADRATIC));
-					tween.animate(TweenableParam.SCALE_X, 1, 1.25, JUMP_TIME/2);
-					tween.animate(TweenableParam.SCALE_Y, 1, 1.25, JUMP_TIME/2);
-					tween.animate(TweenableParam.SCALE_X, 1.25, 1, JUMP_TIME/2, JUMP_TIME/2);
-					tween.animate(TweenableParam.SCALE_Y, 1.25, 1, JUMP_TIME/2, JUMP_TIME/2);
-					tweenJuggler.add(tween);
-				}
-				
-			}	
-			
-			if (physicsContainer != null) {
-				// Slow down the character
-				if (pressedKeys.contains(KeyEvent.getKeyText(KeyEvent.VK_SPACE)) && this.fluid > 0) {
-					this.subtractFluid();
-				}
-				
-				// Speed up the character
-				if (pressedKeys.contains(KeyEvent.getKeyText(KeyEvent.VK_DOWN))) {
-					this.physicsContainer.addYVelocity(-VELOCITY_INCREMENT/4);
-				}
-				
+			} else {
+				firstPass = false;
 			}
-			
-		} else {
-			firstPass = false;
 		}
 		
 	}
@@ -565,24 +643,8 @@ public class LabOneGame extends Game implements IEventListener {
 	 * the screen, we need to make sure to override this method and call mario's draw method.
 	 * */
 	@Override
-	public void draw(Graphics g){
-		AttributedString scoreString = new AttributedString((int)this.score + "");
-		scoreString.addAttribute(TextAttribute.WEIGHT, TextAttribute.WEIGHT_BOLD);
-		scoreString.addAttribute(TextAttribute.WIDTH, TextAttribute.WIDTH_EXTENDED);
-		scoreString.addAttribute(TextAttribute.SIZE, 18);
-		g.drawString(scoreString.getIterator(), 15, 25);
-				
+	public void draw(Graphics g) {				
 		super.draw(g);
-		
-		if (lost){
-			//System.out.println("Printing YOU LOST");
-			AttributedString loseString = new AttributedString("YOU LOST");
-			loseString.addAttribute(TextAttribute.WEIGHT, TextAttribute.WEIGHT_BOLD);
-			loseString.addAttribute(TextAttribute.WIDTH, TextAttribute.WIDTH_EXTENDED);
-			loseString.addAttribute(TextAttribute.SIZE, 60);
-			//g.drawString(loseString.getIterator(), this.getWidth()/2, this.getHeight()/2);
-			g.drawString(loseString.getIterator(), 15, this.getHeight()/2);
-		}
 	}
 
 	/**
@@ -603,22 +665,6 @@ public class LabOneGame extends Game implements IEventListener {
 		soundMgr.loadSoundEffect("Pothole", "cartoon037.wav");
 		soundMgr.loadMusic("Background Music", "Racing Menu.wav");
 		soundMgr.playMusic("Background Music");
-		//soundMgr.loadMusic("Background Music", "01-super-mario-bros.wav");
-		//soundMgr.playMusic("Background Music");
-
-		/* Add obstacles to the level */
-
-		for (int i = 0; i< 1000; i++) {
-			game.addLine(GAME_WIDTH/2, 256*i);
-		}
-		
-		// Tutorial Obstacles
-		game.addObstacle(ObstacleType.ROW, 0, 1000);
-		game.addObstacle(ObstacleType.FUNNEL, 0, 1250);
-		game.addObstacle(ObstacleType.DOG, GAME_WIDTH/2, 1750);
-		
-		// Load the first template
-		game.handleEvent(null);
 
 		/* Start the game */
 		game.start();

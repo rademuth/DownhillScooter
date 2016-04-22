@@ -17,7 +17,7 @@ public class PhysicsSprite extends AnimatedSprite {
 	
 	public PhysicsSprite(String id) {
 		super(id);
-		this.lastKinematicsUpdate = System.nanoTime();
+		this.lastKinematicsUpdate = -1;
 		this.velocity = new Vector(0,0);
 		this.acceleration = new Vector(0,0);
 		this.oldPosition = new Vector(0,0);
@@ -25,7 +25,7 @@ public class PhysicsSprite extends AnimatedSprite {
 	
 	public PhysicsSprite(String id, String imageFileName) {
 		super(id, imageFileName);
-		this.lastKinematicsUpdate = System.nanoTime();
+		this.lastKinematicsUpdate = -1;
 		this.velocity = new Vector(0,0);
 		this.acceleration = new Vector(0,0);
 		this.oldPosition = new Vector(0,0);
@@ -75,17 +75,21 @@ public class PhysicsSprite extends AnimatedSprite {
 	public void update(ArrayList<String> pressedKeys) {
 		super.update(pressedKeys);
 
-		oldPosition = this.getPosition();
-		
-		long elapsedTime_ns = System.nanoTime() - lastKinematicsUpdate;
-		double elapsedTime = (double) elapsedTime_ns / 1000000000;
-		lastKinematicsUpdate = System.nanoTime();
+		if (lastKinematicsUpdate < 0) {
+			lastKinematicsUpdate = System.nanoTime();
+		} else {
+			oldPosition = this.getPosition();
 			
-		// Calculate the velocity
-		velocity.add(GRAVITY.product(elapsedTime));
-			
-		// Calculate the position
-		this.setPosition(oldPosition.sum(velocity.product(elapsedTime)));
+			long elapsedTime_ns = System.nanoTime() - lastKinematicsUpdate;
+			double elapsedTime = (double) elapsedTime_ns / 1000000000;
+			lastKinematicsUpdate = System.nanoTime();
+				
+			// Calculate the velocity
+			velocity.add(GRAVITY.product(elapsedTime));
+				
+			// Calculate the position
+			this.setPosition(oldPosition.sum(velocity.product(elapsedTime)));
+		}
 	}
 	
 }

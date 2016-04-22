@@ -224,6 +224,10 @@ public class Game extends DisplayObjectContainer implements ActionListener, KeyL
 	public void addSprite(Sprite d) {
 		obstacles.add(d);
 	}
+	
+	public void removeSprites() {
+		obstacles.clear();
+	}
 
 	public void keyTyped(KeyEvent arg0) {
 		
