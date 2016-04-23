@@ -77,6 +77,9 @@ public class LabOneGame extends Game implements IEventListener {
 	 *     - scoreText
 	 *     - lossText
 	 *   - menuContainer
+	 *     - lines
+	 *     - dog
+	 *     - menuImage
 	 */
 	private Sprite scooter;
 	private PhysicsSprite physicsContainer;
@@ -112,6 +115,8 @@ public class LabOneGame extends Game implements IEventListener {
 	private double heartThreshold;
 	private int numTemplatesAdded;	
 	private Random rand;
+	
+	private DisplayObject menuImage = new DisplayObject("Menu Image", "Menu.png");
 	
 	/**
 	 * Constructor. See constructor in Game.java for details on the parameters given
@@ -181,6 +186,17 @@ public class LabOneGame extends Game implements IEventListener {
 		// Organize the display tree
 		this.addChild(menuContainer);
 		this.addChild(gameContainer);
+		for (int i = 0; i < 3; i++) {
+			Sprite lineSprite = new Sprite("Line", "Line.png");
+			lineSprite.setPivotPoint(lineSprite.getUnscaledWidth()/2, 0);
+			lineSprite.setPosition(GAME_WIDTH/2, 256*i);
+			this.menuContainer.addChild(lineSprite);
+		}
+		this.menuContainer.addChild(menuImage);
+		MovingSprite dogSprite = new MovingSprite("Dog", dogImages, ObstacleType.DOG, 0, GAME_WIDTH);
+		dogSprite.setPivotPoint(dogSprite.getUnscaledWidth()/2, dogSprite.getUnscaledHeight()/2);
+		dogSprite.setPosition(125, 580);
+		this.menuContainer.addChild(dogSprite);
 		this.gameContainer.addChild(physicsContainer);
 		this.gameContainer.addChild(uiContainer);
 		this.gameContainer.addChild(scoreText);
@@ -402,22 +418,7 @@ public class LabOneGame extends Game implements IEventListener {
 		invincibilityTween.animate(TweenableParam.ALPHA, 0.5, 1, INVINCIBILITY_TIME/8, 7*INVINCIBILITY_TIME/8);
 		tweenJuggler.add(invincibilityTween);
 	}
-	
-	public void exitGame() {
-		//System.out.println("Exiting Game");
-		this.lostText.setVisible(true);
-		if(lastLoss < 0){
-			//System.out.println("Setting loseTime");
-			lastLoss = System.nanoTime();
-		}
 		
-		if((System.nanoTime() - lastLoss)/1000000 >= 3000){
-			//System.out.println("Actually Exiting Game");
-			displayMenu = true;
-			this.endGame();
-		}
-	}
-	
 	public void pickupHealth() {
 		soundMgr.playSoundEffect("Heart");
 		this.health = MAX_HEALTH;
@@ -549,7 +550,6 @@ public class LabOneGame extends Game implements IEventListener {
 		s.setPivotPoint(s.getUnscaledWidth()/2, s.getUnscaledHeight()/2);
 		s.setPosition(xPos, yPos);
 		this.lineContainer.addChild(s);
-		this.addSprite(s);
 	}
 	
 	/**
