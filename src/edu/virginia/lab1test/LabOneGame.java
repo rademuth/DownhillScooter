@@ -108,6 +108,7 @@ public class LabOneGame extends Game implements IEventListener {
 	private long lastLoss;
 	private long lastJump;
 	private long lastCollision;
+	private long startTime;
 	private double fluid;
 	private double health;
 	private double score;
@@ -116,7 +117,7 @@ public class LabOneGame extends Game implements IEventListener {
 	private int numTemplatesAdded;	
 	private Random rand;
 	
-	private DisplayObject menuImage = new DisplayObject("Menu Image", "Menu.png");
+	private DisplayObject menuImage = new DisplayObject("Menu Image", "Menu2.png");
 	
 	/**
 	 * Constructor. See constructor in Game.java for details on the parameters given
@@ -175,6 +176,7 @@ public class LabOneGame extends Game implements IEventListener {
 		this.lastLoss = -1;
 		this.lastJump = -1;
 		this.lastCollision = -1;
+		this.startTime = -1;
 		this.fluid = MAX_FLUID;
 		this.health = MAX_HEALTH;
 		this.score = 0;
@@ -189,7 +191,7 @@ public class LabOneGame extends Game implements IEventListener {
 		for (int i = 0; i < 3; i++) {
 			Sprite lineSprite = new Sprite("Line", "Line.png");
 			lineSprite.setPivotPoint(lineSprite.getUnscaledWidth()/2, 0);
-			lineSprite.setPosition(GAME_WIDTH/2, 256*i);
+			lineSprite.setPosition(GAME_WIDTH/2, 50+256*i);
 			this.menuContainer.addChild(lineSprite);
 		}
 		this.menuContainer.addChild(menuImage);
@@ -228,7 +230,7 @@ public class LabOneGame extends Game implements IEventListener {
 		this.physicsContainer.setYAcceleration(-10);
 		this.fluidBar.setScaleX(1);
 		this.healthBar.setScaleX(1);
-		this.lostText.setVisible(false); // What about the text itself???
+		this.lostText.setVisible(false);
 		
 		// Initialize game variables
 		this.displayMenu = false;
@@ -236,6 +238,7 @@ public class LabOneGame extends Game implements IEventListener {
 		this.lastLoss = -1;
 		this.lastJump = System.nanoTime();
 		this.lastCollision = System.nanoTime();
+		this.startTime = System.nanoTime();
 		this.fluid = MAX_FLUID;
 		this.health = MAX_HEALTH;
 		this.score = 0;
@@ -259,8 +262,13 @@ public class LabOneGame extends Game implements IEventListener {
 		this.handleEvent(null);
 
 		// Swap the gameContainer with the menuContainer
-		this.removeChild(menuContainer);
 		this.addChild(gameContainer);
+		Tween menuTween = new Tween(menuContainer, new TweenTransition(TweenTransitionType.LINEAR));
+		menuTween.animate(TweenableParam.Y, 0, -750, 1000);
+		tweenJuggler.add(menuTween);
+		Tween gameTween = new Tween(gameContainer, new TweenTransition(TweenTransitionType.LINEAR));
+		gameTween.animate(TweenableParam.Y, 750, 0, 1000);
+		tweenJuggler.add(gameTween);
 	}
 	
 	public void endGame() {
@@ -285,7 +293,10 @@ public class LabOneGame extends Game implements IEventListener {
 		
 		// Add the menu container as a child
 		this.removeChild(gameContainer);
-		this.addChild(menuContainer);
+		//this.addChild(menuContainer);
+		Tween menuTween = new Tween(menuContainer, new TweenTransition(TweenTransitionType.LINEAR));
+		menuTween.animate(TweenableParam.Y, 750, 0, 1000);
+		tweenJuggler.add(menuTween);
 	}
 	
 	public void addTemplate(String fileName, double yOffset) {
@@ -569,15 +580,27 @@ public class LabOneGame extends Game implements IEventListener {
 			} else {
 		
 				if (this.lost) {
-					if ((System.nanoTime() - this.lastLoss) / 1000000 > 3000) {
+					if ((System.nanoTime() - this.lastLoss) / 1000000 > 5000) {
 						displayMenu = true;
+						// Calculate average speed multiplier
+						double averageVelocity = this.physicsContainer.getYPosition() / ((System.nanoTime() - this.startTime) / 1000000000);
+						double scoreMultiplier = averageVelocity / INITIAL_VELOCITY;
+						double finalScore = this.score*scoreMultiplier;
+						System.out.println("Initial Score: " + this.score + "   Average Velocity: " + averageVelocity + "   Multiplier: " + scoreMultiplier + "   Final Score: " + finalScore);
+						/* TODO: Display score information
+						 * 
+						 */
+						/* TODO: Update high scores here
+						 * 
+						 */
 						this.endGame();
 					} else {
 						return;
 					}
 				}
 				
-				this.score -= this.physicsContainer.getYVelocity();
+				//this.score -= this.physicsContainer.getYVelocity();
+				this.score = -this.physicsContainer.getYPosition();
 				this.scoreText.setText((int)this.score+"");
 					
 				/** 
