@@ -4,7 +4,6 @@ public enum ObstacleType {
 	POTHOLE,
 	TRAFFIC_CONE,
 	DOG,
-	CAR,
 	FLUID,
 	HEART,
 	ZIG,
@@ -17,6 +16,6 @@ public enum ObstacleType {
 	SPLIT_LEFT,
 	SPLIT_RIGHT,
 	WEDGE,
-	DIAMOND,
-	CONSTRUCTION_ZONE
+	CONSTRUCTION_ZONE,
+	RANDOM
 }

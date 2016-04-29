@@ -34,8 +34,9 @@ public class LabOneGame extends Game implements IEventListener {
 
 	// Predefined images and templates
 	private final static String[] dogImages = {"Dog_walk_1.png", "Dog_walk_2.png", "Dog_walk_3.png", "Dog_walk_4.png"};
-	private final static String[] templates = {"template1.txt", "template2.txt", "template3.txt", "template4.txt", "template5.txt", "template6.txt"};
-
+//	private final static String[] templates = {"template1.txt", "template2.txt", "template3.txt", "template4.txt", "template5.txt", "template6.txt", "template7.txt", "template8.txt"};
+	private final static String[] templates = {"template8.txt"};
+	
 	// Game dimensions
 	public final static int GAME_WIDTH = 500;
 	public final static int GAME_HEIGHT = 725;
@@ -312,9 +313,12 @@ public class LabOneGame extends Game implements IEventListener {
 		
 		while (scan.hasNextLine()) {
 			// ObstacleType,xPos,yPos
-			String[] arr = scan.nextLine().split(",");
-			ObstacleType type = ObstacleType.valueOf(arr[0]);
-			this.addObstacle(type, Double.parseDouble(arr[1]), yOffset+Double.parseDouble(arr[2]));
+			String line = scan.nextLine();
+			if (!line.substring(0,2).equals("//")) {
+				String[] arr = line.split(",");
+				ObstacleType type = ObstacleType.valueOf(arr[0]);
+				this.addObstacle(type, Double.parseDouble(arr[1]), yOffset+Double.parseDouble(arr[2]));
+			}
 		}
 				
 		TemplateMarker tm = new TemplateMarker("Template Marker", this);
@@ -466,8 +470,6 @@ public class LabOneGame extends Game implements IEventListener {
 				this.dogContainer.addChild(s);
 				this.addSprite(s);
 				break;
-			case CAR:
-				break;
 			case FLUID:
 				s = new Sprite("Fluid", "Fluid.png", type);
 				s.setPivotPoint(s.getUnscaledWidth()/2, s.getUnscaledHeight()/2);
@@ -542,16 +544,19 @@ public class LabOneGame extends Game implements IEventListener {
 					this.addObstacle(ObstacleType.TRAFFIC_CONE, GAME_WIDTH/2 + 25*i, yPos + 50*i);	
 				}
 				break;
-			case DIAMOND:
-				this.addObstacle(ObstacleType.WEDGE, 0, yPos);
-				this.addObstacle(ObstacleType.FUNNEL, 0, yPos + 500);
-				break;
 			case CONSTRUCTION_ZONE:
 				this.addObstacle(ObstacleType.TRAFFIC_CONE, xPos, yPos);
 				this.addObstacle(ObstacleType.POTHOLE, xPos + 50, yPos);
 				this.addObstacle(ObstacleType.POTHOLE, xPos + 100, yPos);
 				this.addObstacle(ObstacleType.POTHOLE, xPos + 150, yPos);
 				this.addObstacle(ObstacleType.TRAFFIC_CONE, xPos + 200, yPos);				
+				break;
+			case RANDOM:
+				for (int i = 0; i < 15; i++) {
+					int x = this.rand.nextInt(455); // Need to add 20
+					int y = this.rand.nextInt(1000); // Need to add offset
+					this.addObstacle(ObstacleType.TRAFFIC_CONE, x + 20, y + yPos);
+				}
 				break;
 		}
 	}
