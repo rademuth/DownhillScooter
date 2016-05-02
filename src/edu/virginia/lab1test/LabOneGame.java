@@ -5,10 +5,14 @@ import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Random;
 import java.util.Scanner;
+
+import javax.swing.JOptionPane;
 
 import edu.virginia.engine.display.DisplayObject;
 import edu.virginia.engine.display.DisplayObjectContainer;
@@ -50,7 +54,7 @@ public class LabOneGame extends Game implements IEventListener {
 	private final static double MAX_FLUID = 100;
 	private final static double FLUID_INCREMENT = 1;
 	private final static double MAX_HEALTH = 100;
-	private final static double HEALTH_INCREMENT = 10;
+	private final static double HEALTH_INCREMENT = 50;
 	private final static double TEMPLATE_LENGTH = 6000;
 	private final static double FIRST_TEMPLATE_OFFSET = 2000;
 
@@ -91,6 +95,7 @@ public class LabOneGame extends Game implements IEventListener {
 	private DisplayObjectContainer heartContainer;
 	private DisplayObjectContainer uiContainer;
 	private DisplayObjectContainer menuContainer;
+	private DisplayObjectContainer highScoresContainer;
 	private DisplayObjectContainer gameContainer;
 	private Sprite fluidBar;
 	private Sprite fluidIcon;
@@ -99,6 +104,7 @@ public class LabOneGame extends Game implements IEventListener {
 	private Sprite healthIcon;
 	private Sprite healthFrame;
 	private DisplayText scoreText;
+	private DisplayText highScoresText;
 	private DisplayText lostText;
 	
 	// Game variables
@@ -135,6 +141,7 @@ public class LabOneGame extends Game implements IEventListener {
 		this.heartContainer = new DisplayObjectContainer("Heart Container");
 		this.uiContainer = new DisplayObjectContainer("UI Container");
 		this.menuContainer = new DisplayObjectContainer("Menu Container");
+		this.highScoresContainer = new DisplayObjectContainer("High Scores Container");
 		this.gameContainer = new DisplayObjectContainer("Game Container");
 		this.fluidBar = new Sprite("Fluid", "Fluid_bar.png");
 		this.fluidIcon = new Sprite("Fluid Icon", "Fluid_icon.png");
@@ -143,6 +150,7 @@ public class LabOneGame extends Game implements IEventListener {
 		this.healthIcon = new Sprite("Heart Icon", "Heart_icon.png");
 		this.healthFrame = new Sprite("Health Frame", "Frame.png");
 		this.scoreText = new DisplayText("Score Text", "0", 18);
+		this.highScoresText = new DisplayText("High Scores", "0", 18);
 		this.lostText = new DisplayText("Lost Text", "YOU LOST", 60);
 		
 		// Edit initial values for sprites and containers
@@ -165,6 +173,10 @@ public class LabOneGame extends Game implements IEventListener {
 		this.healthFrame.setXPosition(GAME_WIDTH-(25+healthFrame.getUnscaledWidth()));
 		this.scoreText.setXPosition(15);
 		this.scoreText.setYPosition(25);
+		this.highScoresContainer.setXPosition(205);
+		this.highScoresContainer.setYPosition(70);
+		//this.highScoresText.setXPosition(205);
+		//this.highScoresText.setYPosition(70);
 		this.lostText.setXPosition(15);
 		this.lostText.setYPosition(GAME_HEIGHT/2);
 		this.lostText.setVisible(false);
@@ -197,6 +209,10 @@ public class LabOneGame extends Game implements IEventListener {
 		dogSprite.setPivotPoint(dogSprite.getUnscaledWidth()/2, dogSprite.getUnscaledHeight()/2);
 		dogSprite.setPosition(125, 580);
 		this.menuContainer.addChild(dogSprite);
+		
+		loadHighScores();
+		this.menuContainer.addChild(highScoresContainer);
+
 		this.gameContainer.addChild(physicsContainer);
 		this.gameContainer.addChild(uiContainer);
 		this.gameContainer.addChild(scoreText);
@@ -259,6 +275,8 @@ public class LabOneGame extends Game implements IEventListener {
 		this.handleEvent(null);
 
 		// Swap the gameContainer with the menuContainer
+		this.highScoresContainer.removeAll();
+		
 		this.removeChild(menuContainer);
 		this.addChild(gameContainer);
 	}
@@ -280,12 +298,104 @@ public class LabOneGame extends Game implements IEventListener {
 		this.physicsContainer.setYAcceleration(0);
 		this.physicsContainer.lastKinematicsUpdate = -1;
 
+		saveScore();
+		
 		// Initialize game variables
+		loadHighScores();
 		this.displayMenu = true;
 		
 		// Add the menu container as a child
 		this.removeChild(gameContainer);
 		this.addChild(menuContainer);
+		
+	}
+	
+	public void saveScore() {
+		String fileName = "highscores.txt";
+		Scanner infile = null;
+		ArrayList<String> scores = new ArrayList<String>();
+		try {
+			infile = new Scanner(new File(fileName));
+			while(infile.hasNextLine()){
+				String line = infile.nextLine();
+				//String[] arr = line.split(", ");
+				scores.add(line);
+			}
+		}
+		catch (FileNotFoundException e) {
+			System.out.println("Could not find file " + fileName);
+		}
+		
+		String name = (String)JOptionPane.showInputDialog("Enter your name (Max of three characters)");
+		
+		if(scores.size() == 0)
+			scores.add(name.substring(0, 3) + " " + (int)this.score);
+		else
+			for(int x = 0; x < scores.size(); x++){
+				//String[] arr = line.split(", ");
+				if((int)this.score > Integer.parseInt(scores.get(x).split(" ")[1])){
+					scores.add(x, name.substring(0, 3) + " " +(int)this.score);
+					break;
+				}
+				else if(x == scores.size()-1 && scores.size() < 5){
+					scores.add(name.substring(0, 3) + " " +(int)this.score);
+					break;
+				}
+			}
+		
+		if(scores.size() > 5)
+			scores.remove(5);
+		
+		PrintWriter writer = null;
+		try {
+			writer = new PrintWriter(fileName, "UTF-8");
+			for(String s : scores)
+				writer.println(s);
+			writer.close();
+		}
+		catch (FileNotFoundException e) {
+			System.out.println("Could not find file " + fileName);
+		}
+		catch (UnsupportedEncodingException e) {
+			System.out.println("Doesn't support UTF-8");
+		}
+	}
+	
+	public void loadHighScores(){
+		String fileName = "highscores.txt";
+		Scanner infile = null;
+		String scoreText = "High Scores:\n";
+		
+		DisplayText highScore = new DisplayText("High Score", "0", 18);
+		highScore.setText("High Scores: ");
+		highScore.setXPosition(0);
+		highScore.setYPosition(0);
+		this.highScoresContainer.addChild(highScore);
+
+		
+		
+		int scoreX = 0;
+		int scoreY = 20;
+		
+		try {
+			infile = new Scanner(new File(fileName));
+			while(infile.hasNextLine()){
+				String line = infile.nextLine();
+				//String[] arr = line.split(", ");
+				//scoreText += line + "\n";
+				DisplayText score = new DisplayText("Score", "0", 18);
+				score.setText(line);
+				score.setXPosition(scoreX);
+				score.setYPosition(scoreY);
+				this.highScoresContainer.addChild(score);
+				scoreY += 20;
+			}
+		}
+		catch (FileNotFoundException e) {
+			System.out.println("Could not find file " + fileName);
+		}
+
+		//this.highScoresText.setText(scoreText);
 	}
 	
 	public void addTemplate(String fileName, double yOffset) {
@@ -296,7 +406,7 @@ public class LabOneGame extends Game implements IEventListener {
 		try {
 			scan = new Scanner(inputFile);
 		} catch (FileNotFoundException e) {
-			System.out.println("Could not find file");
+			System.out.println("Could not find file " + file);
 		}
 		
 		while (scan.hasNextLine()) {
