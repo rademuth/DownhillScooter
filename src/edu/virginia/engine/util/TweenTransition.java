@@ -14,6 +14,8 @@ public class TweenTransition {
 				return linear(percentDone);
 			case QUADRATIC:
 				return quadratic(percentDone);
+			case CUBIC:
+				return cubic(percentDone);
 			default:
 				return percentDone;
 		}
@@ -25,6 +27,10 @@ public class TweenTransition {
 	
 	private double quadratic(double percentDone) {
 		return percentDone*percentDone;
+	}
+	
+	private double cubic(double percentDone) {
+		return percentDone*percentDone*percentDone;
 	}
 	
 }
