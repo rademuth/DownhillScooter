@@ -104,7 +104,6 @@ public class LabOneGame extends Game implements IEventListener {
 	private Sprite healthIcon;
 	private Sprite healthFrame;
 	private DisplayText scoreText;
-	private DisplayText highScoresText;
 	private DisplayText lostText;
 	
 	// Game variables
@@ -151,7 +150,6 @@ public class LabOneGame extends Game implements IEventListener {
 		this.healthIcon = new Sprite("Heart Icon", "Heart_icon.png");
 		this.healthFrame = new Sprite("Health Frame", "Frame.png");
 		this.scoreText = new DisplayText("Score Text", "0", 18);
-		this.highScoresText = new DisplayText("High Scores", "0", 18);
 		this.lostText = new DisplayText("Lost Text", "YOU LOST", 60);
 		
 		// Edit initial values for sprites and containers
@@ -261,7 +259,7 @@ public class LabOneGame extends Game implements IEventListener {
 		this.fluidThreshold = 0.5;
 		this.heartThreshold = 0.5;
 		this.numTemplatesAdded = 0;
-				
+						
 		/* Add obstacles to the level */
 				
 		// Add lines
@@ -278,10 +276,7 @@ public class LabOneGame extends Game implements IEventListener {
 		this.handleEvent(null);
 
 		// Swap the gameContainer with the menuContainer
-		this.highScoresContainer.removeAll();
-		
 		this.removeChild(menuContainer);
-
 		this.addChild(gameContainer);
 		Tween menuTween = new Tween(menuContainer, new TweenTransition(TweenTransitionType.LINEAR));
 		menuTween.animate(TweenableParam.Y, 0, -750, 1000);
@@ -307,15 +302,10 @@ public class LabOneGame extends Game implements IEventListener {
 		this.physicsContainer.setYVelocity(0);
 		this.physicsContainer.setYAcceleration(0);
 		this.physicsContainer.lastKinematicsUpdate = -1;
-
-		saveScore();
 		
-		System.out.println("Got past saveScore");
 		// Initialize game variables
-		loadHighScores();
-		System.out.println("Got past loadHighScores");
-		
 		this.displayMenu = true;
+		this.loadHighScores();
 		
 		// Add the menu container as a child
 		this.removeChild(gameContainer);
@@ -374,12 +364,15 @@ public class LabOneGame extends Game implements IEventListener {
 		catch (UnsupportedEncodingException e) {
 			System.out.println("Doesn't support UTF-8");
 		}
+		
+		this.endGame();
 	}
 	
 	public void loadHighScores(){
+		this.highScoresContainer.removeAll();
+		
 		String fileName = "highscores.txt";
 		Scanner infile = null;
-		String scoreText = "High Scores:\n";
 		
 		DisplayText highScore = new DisplayText("High Score", "0", 18);
 		highScore.setText("High Scores: ");
@@ -387,8 +380,6 @@ public class LabOneGame extends Game implements IEventListener {
 		highScore.setYPosition(0);
 		this.highScoresContainer.addChild(highScore);
 
-		
-		
 		int scoreX = 0;
 		int scoreY = 20;
 		
@@ -663,7 +654,7 @@ public class LabOneGame extends Game implements IEventListener {
 				this.addObstacle(ObstacleType.TRAFFIC_CONE, xPos + 200, yPos);				
 				break;
 			case RANDOM:
-				for (int i = 0; i < 15; i++) {
+				for (int i = 0; i < 10; i++) {
 					int x = this.rand.nextInt(455); // Need to add 20
 					int y = this.rand.nextInt(1000); // Need to add offset
 					this.addObstacle(ObstacleType.TRAFFIC_CONE, x + 20, y + yPos);
@@ -703,13 +694,7 @@ public class LabOneGame extends Game implements IEventListener {
 						double scoreMultiplier = averageVelocity / INITIAL_VELOCITY;
 						double finalScore = this.score*scoreMultiplier;
 						System.out.println("Initial Score: " + this.score + "   Average Velocity: " + averageVelocity + "   Multiplier: " + scoreMultiplier + "   Final Score: " + finalScore);
-						/* TODO: Display score information
-						 * 
-						 */
-						/* TODO: Update high scores here
-						 * 
-						 */
-						this.endGame();
+						this.saveScore();
 					} else {
 						return;
 					}
