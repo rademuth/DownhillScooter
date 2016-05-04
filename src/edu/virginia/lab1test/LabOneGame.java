@@ -54,7 +54,7 @@ public class LabOneGame extends Game implements IEventListener {
 	private final static double MAX_FLUID = 100;
 	private final static double FLUID_INCREMENT = 1;
 	private final static double MAX_HEALTH = 100;
-	private final static double HEALTH_INCREMENT = 10;
+	private final static double HEALTH_INCREMENT = 20;
 	private final static double TEMPLATE_LENGTH = 6000;
 	private final static double FIRST_TEMPLATE_OFFSET = 2000;
 
@@ -313,7 +313,6 @@ public class LabOneGame extends Game implements IEventListener {
 		Tween menuTween = new Tween(menuContainer, new TweenTransition(TweenTransitionType.LINEAR));
 		menuTween.animate(TweenableParam.Y, 750, 0, 1000);
 		tweenJuggler.add(menuTween);
-		System.out.println("Where is the menu");
 	}
 	
 	public void saveScore() {
@@ -694,6 +693,7 @@ public class LabOneGame extends Game implements IEventListener {
 						double scoreMultiplier = averageVelocity / INITIAL_VELOCITY;
 						double finalScore = this.score*scoreMultiplier;
 						System.out.println("Initial Score: " + this.score + "   Average Velocity: " + averageVelocity + "   Multiplier: " + scoreMultiplier + "   Final Score: " + finalScore);
+						this.score = finalScore;
 						this.saveScore();
 					} else {
 						return;
