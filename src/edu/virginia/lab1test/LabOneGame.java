@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Random;
@@ -54,7 +55,7 @@ public class LabOneGame extends Game implements IEventListener {
 	private final static double MAX_FLUID = 100;
 	private final static double FLUID_INCREMENT = 1;
 	private final static double MAX_HEALTH = 100;
-	private final static double HEALTH_INCREMENT = 20;
+	private final static double HEALTH_INCREMENT = 15;
 	private final static double TEMPLATE_LENGTH = 6000;
 	private final static double FIRST_TEMPLATE_OFFSET = 2000;
 
@@ -97,6 +98,7 @@ public class LabOneGame extends Game implements IEventListener {
 	private DisplayObjectContainer menuContainer;
 	private DisplayObjectContainer highScoresContainer;
 	private DisplayObjectContainer gameContainer;
+	private DisplayObjectContainer scoreContainer;
 	private Sprite fluidBar;
 	private Sprite fluidIcon;
 	private Sprite fluidFrame;	
@@ -104,7 +106,6 @@ public class LabOneGame extends Game implements IEventListener {
 	private Sprite healthIcon;
 	private Sprite healthFrame;
 	private DisplayText scoreText;
-	private DisplayText lostText;
 	
 	// Game variables
 	private boolean objectsReady = false;
@@ -121,6 +122,7 @@ public class LabOneGame extends Game implements IEventListener {
 	private double heartThreshold;
 	private int numTemplatesAdded;	
 	private Random rand;
+	private DecimalFormat df;
 	
 	private DisplayObject menuImage = new DisplayObject("Menu Image", "Menu2.png");
 	
@@ -143,6 +145,7 @@ public class LabOneGame extends Game implements IEventListener {
 		this.menuContainer = new DisplayObjectContainer("Menu Container");
 		this.highScoresContainer = new DisplayObjectContainer("High Scores Container");
 		this.gameContainer = new DisplayObjectContainer("Game Container");
+		this.scoreContainer = new DisplayObjectContainer("Score Container");
 		this.fluidBar = new Sprite("Fluid", "Fluid_bar.png");
 		this.fluidIcon = new Sprite("Fluid Icon", "Fluid_icon.png");
 		this.fluidFrame = new Sprite("Fluid Frame", "Frame.png");
@@ -150,7 +153,6 @@ public class LabOneGame extends Game implements IEventListener {
 		this.healthIcon = new Sprite("Heart Icon", "Heart_icon.png");
 		this.healthFrame = new Sprite("Health Frame", "Frame.png");
 		this.scoreText = new DisplayText("Score Text", "0", 18);
-		this.lostText = new DisplayText("Lost Text", "YOU LOST", 60);
 		
 		// Edit initial values for sprites and containers
 		this.scooter.setXPivotPoint(this.scooter.getUnscaledWidth()/2);
@@ -174,11 +176,6 @@ public class LabOneGame extends Game implements IEventListener {
 		this.scoreText.setYPosition(25);
 		this.highScoresContainer.setXPosition(205);
 		this.highScoresContainer.setYPosition(70);
-		//this.highScoresText.setXPosition(205);
-		//this.highScoresText.setYPosition(70);
-		this.lostText.setXPosition(15);
-		this.lostText.setYPosition(GAME_HEIGHT/2);
-		this.lostText.setVisible(false);
 		
 		// Initialize game variables
 		this.displayMenu = true;
@@ -194,6 +191,7 @@ public class LabOneGame extends Game implements IEventListener {
 		this.heartThreshold = 0.5;
 		this.numTemplatesAdded = 0;
 		this.rand = new Random();
+		this.df = new DecimalFormat("#.##");
 		
 		// Organize the display tree
 		this.addChild(menuContainer);
@@ -217,7 +215,7 @@ public class LabOneGame extends Game implements IEventListener {
 		this.gameContainer.addChild(uiContainer);
 		this.gameContainer.addChild(scoreText);
 		this.gameContainer.addChild(scooter);
-		this.gameContainer.addChild(lostText);
+		this.gameContainer.addChild(scoreContainer);
 		this.physicsContainer.addChild(lineContainer);
 		this.physicsContainer.addChild(this.potholeContainer);
 		this.physicsContainer.addChild(this.trafficConeContainer);
@@ -244,7 +242,6 @@ public class LabOneGame extends Game implements IEventListener {
 		this.physicsContainer.setYAcceleration(-10);
 		this.fluidBar.setScaleX(1);
 		this.healthBar.setScaleX(1);
-		this.lostText.setVisible(false);
 		
 		// Initialize game variables
 		this.displayMenu = false;
@@ -305,6 +302,7 @@ public class LabOneGame extends Game implements IEventListener {
 		
 		// Initialize game variables
 		this.displayMenu = true;
+		this.scoreContainer.removeAll();
 		this.loadHighScores();
 		
 		// Add the menu container as a child
@@ -512,10 +510,33 @@ public class LabOneGame extends Game implements IEventListener {
 		if (this.health < 0){
 			this.health = 0;
 			this.lost = true;
-			this.lostText.setVisible(true);
 			this.lastLoss = System.nanoTime();
 			this.physicsContainer.setYVelocity(0);
 			this.physicsContainer.setYAcceleration(0);
+			
+			double averageVelocity = this.physicsContainer.getYPosition() / ((System.nanoTime() - this.startTime) / 1000000000);
+			double scoreMultiplier = ((averageVelocity / INITIAL_VELOCITY) + 3) / 4;
+			double finalScore = this.score*scoreMultiplier;
+			System.out.println("Initial Score: " + this.score + "   Average Velocity: " + averageVelocity + "   Multiplier: " + scoreMultiplier + "   Final Score: " + finalScore);
+			
+			// Show score results on screen
+			DisplayText distanceText = new DisplayText("Distance Text", "Distance: " + (int)this.score, 24);
+			DisplayText multiplierText = new DisplayText("Multiplier Text", "Speed Multplier: " + df.format(scoreMultiplier), 24);
+			DisplayText finalScoreText = new DisplayText("Final Score Text", "Final Score: " + (int)finalScore, 24);
+			
+			distanceText.setYPosition(GAME_HEIGHT/2 - 30);
+			multiplierText.setYPosition(GAME_HEIGHT/2);
+			finalScoreText.setYPosition(GAME_HEIGHT/2 + 30);
+			
+			distanceText.setXPosition(75);
+			multiplierText.setXPosition(75);
+			finalScoreText.setXPosition(75);
+			
+			this.scoreContainer.addChild(distanceText);
+			this.scoreContainer.addChild(multiplierText);
+			this.scoreContainer.addChild(finalScoreText);
+
+			this.score = finalScore;			
 		}
 		this.lastCollision = System.nanoTime();
 		// Scale down the health bar
@@ -688,19 +709,12 @@ public class LabOneGame extends Game implements IEventListener {
 				if (this.lost) {
 					if ((System.nanoTime() - this.lastLoss) / 1000000 > 5000) {
 						displayMenu = true;
-						// Calculate average speed multiplier
-						double averageVelocity = this.physicsContainer.getYPosition() / ((System.nanoTime() - this.startTime) / 1000000000);
-						double scoreMultiplier = averageVelocity / INITIAL_VELOCITY;
-						double finalScore = this.score*scoreMultiplier;
-						System.out.println("Initial Score: " + this.score + "   Average Velocity: " + averageVelocity + "   Multiplier: " + scoreMultiplier + "   Final Score: " + finalScore);
-						this.score = finalScore;
 						this.saveScore();
 					} else {
 						return;
 					}
 				}
 				
-				//this.score -= this.physicsContainer.getYVelocity();
 				this.score = -this.physicsContainer.getYPosition();
 				this.scoreText.setText((int)this.score+"");
 					
@@ -719,7 +733,6 @@ public class LabOneGame extends Game implements IEventListener {
 							switch (s.type) {
 								case POTHOLE:
 									if (!this.isInAir() && !this.isInvincible()) {
-										//System.out.println("Collision");
 										soundMgr.playSoundEffect("Pothole");
 										this.subtractHealth();
 										iter.remove();
@@ -727,7 +740,6 @@ public class LabOneGame extends Game implements IEventListener {
 									break;
 								case TRAFFIC_CONE:
 									if (!this.isInvincible()) {
-										//System.out.println("Collision");
 										this.subtractHealth();
 										soundMgr.playSoundEffect("Cone");
 										iter.remove();
@@ -735,20 +747,17 @@ public class LabOneGame extends Game implements IEventListener {
 									break;
 								case DOG:
 									if (!this.isInvincible()) {
-										//System.out.println("Collision");
 										this.subtractHealth();
 										soundMgr.playSoundEffect("Dog");
 										iter.remove();
 									}
 									break;
 								case FLUID:
-									//System.out.println("Fluid");
 									s.setVisible(false);
 									this.pickupFluid();
 									iter.remove();
 									break;
 								case HEART:
-									//System.out.println("Heart");
 									s.setVisible(false);
 									pickupHealth();
 									iter.remove();
@@ -791,7 +800,6 @@ public class LabOneGame extends Game implements IEventListener {
 					
 					// Make the character jump
 					if (pressedKeys.contains(KeyEvent.getKeyText(KeyEvent.VK_UP)) && this.canJump()) {
-						//soundMgr.playSoundEffect("Jump");
 						this.lastJump = System.nanoTime();
 						Tween tween = new Tween(scooter, new TweenTransition(TweenTransitionType.QUADRATIC));
 						tween.animate(TweenableParam.SCALE_X, 1, 1.25, JUMP_TIME/2);
